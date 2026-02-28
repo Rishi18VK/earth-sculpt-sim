@@ -3,6 +3,7 @@ import Scene3D from "@/components/terrain/Scene3D";
 import InfoPanel from "@/components/terrain/InfoPanel";
 import TerrainLegend from "@/components/terrain/TerrainLegend";
 import MeasurementPanel from "@/components/terrain/MeasurementPanel";
+import ExportPanel from "@/components/terrain/ExportPanel";
 import { Badge } from "@/components/ui/badge";
 import { Mountain, Compass } from "lucide-react";
 
@@ -83,6 +84,7 @@ const Index = () => {
           pointB={pointB}
         />
         {!measureMode && <InfoPanel info={selectedInfo} />}
+        <ExportPanel />
       </div>
 
       {/* Measure mode indicator */}
