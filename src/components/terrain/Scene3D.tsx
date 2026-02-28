@@ -1,10 +1,19 @@
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Sky, Stars, Environment, PerspectiveCamera } from "@react-three/drei";
+import { OrbitControls, Sky, Stars, PerspectiveCamera } from "@react-three/drei";
 import TerrainMesh from "./TerrainMesh";
+import MeasurementMarkers from "./MeasurementMarkers";
 import { Suspense } from "react";
+
+interface MeasurementPoint {
+  position: [number, number, number];
+  type: string;
+  height: number;
+}
 
 interface Scene3DProps {
   onPointClick?: (info: { type: string; height: number; position: [number, number, number] }) => void;
+  pointA?: MeasurementPoint | null;
+  pointB?: MeasurementPoint | null;
 }
 
 function Lights() {
@@ -29,7 +38,7 @@ function Lights() {
   );
 }
 
-export default function Scene3D({ onPointClick }: Scene3DProps) {
+export default function Scene3D({ onPointClick, pointA, pointB }: Scene3DProps) {
   return (
     <Canvas
       shadows
@@ -52,6 +61,7 @@ export default function Scene3D({ onPointClick }: Scene3DProps) {
         <Stars radius={100} depth={50} count={3000} factor={4} saturation={0.5} fade speed={1} />
         <fog attach="fog" args={["#a0c4e8", 40, 100]} />
         <TerrainMesh onPointClick={onPointClick} />
+        <MeasurementMarkers pointA={pointA || null} pointB={pointB || null} />
       </Suspense>
 
       <OrbitControls

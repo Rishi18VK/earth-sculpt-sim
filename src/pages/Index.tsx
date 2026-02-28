@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Scene3D from "@/components/terrain/Scene3D";
 import InfoPanel from "@/components/terrain/InfoPanel";
 import TerrainLegend from "@/components/terrain/TerrainLegend";
+import MeasurementPanel from "@/components/terrain/MeasurementPanel";
 import { Badge } from "@/components/ui/badge";
 import { Mountain, Compass } from "lucide-react";
 
@@ -13,12 +14,46 @@ interface TerrainInfo {
 
 const Index = () => {
   const [selectedInfo, setSelectedInfo] = useState<TerrainInfo | null>(null);
+  const [measureMode, setMeasureMode] = useState(false);
+  const [pointA, setPointA] = useState<TerrainInfo | null>(null);
+  const [pointB, setPointB] = useState<TerrainInfo | null>(null);
+
+  const handlePointClick = useCallback(
+    (info: TerrainInfo) => {
+      if (measureMode) {
+        if (!pointA) {
+          setPointA(info);
+        } else if (!pointB) {
+          setPointB(info);
+          setMeasureMode(false);
+        }
+      } else {
+        setSelectedInfo(info);
+      }
+    },
+    [measureMode, pointA, pointB]
+  );
+
+  const handleClearMeasure = () => {
+    setPointA(null);
+    setPointB(null);
+    setMeasureMode(false);
+  };
+
+  const handleToggleMeasure = () => {
+    if (measureMode) {
+      setMeasureMode(false);
+    } else {
+      setPointA(null);
+      setPointB(null);
+      setMeasureMode(true);
+    }
+  };
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-background">
-      {/* 3D Canvas - Full Screen */}
       <div className="absolute inset-0">
-        <Scene3D onPointClick={setSelectedInfo} />
+        <Scene3D onPointClick={handlePointClick} pointA={pointA} pointB={pointB} />
       </div>
 
       {/* Top Bar */}
@@ -38,10 +73,28 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Info Panel - Right Side */}
-      <div className="absolute top-20 right-4 z-10 w-64 pointer-events-auto">
-        <InfoPanel info={selectedInfo} />
+      {/* Right Side Panels */}
+      <div className="absolute top-20 right-4 z-10 w-64 space-y-3 pointer-events-auto max-h-[calc(100vh-7rem)] overflow-y-auto">
+        <MeasurementPanel
+          measureMode={measureMode}
+          onToggleMeasure={handleToggleMeasure}
+          onClear={handleClearMeasure}
+          pointA={pointA}
+          pointB={pointB}
+        />
+        {!measureMode && <InfoPanel info={selectedInfo} />}
       </div>
+
+      {/* Measure mode indicator */}
+      {measureMode && (
+        <div className="absolute top-20 left-4 z-10 pointer-events-auto">
+          <div className="bg-primary/90 backdrop-blur-md rounded-lg px-4 py-2 border border-primary animate-pulse">
+            <p className="text-xs font-semibold text-primary-foreground">
+              📐 Measure Mode — Click terrain to place {!pointA ? "Point A" : "Point B"}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Legend */}
       <div className="absolute bottom-4 left-4 right-4 z-10 pointer-events-none">
@@ -50,7 +103,6 @@ const Index = () => {
         </div>
       </div>
 
-      {/* 3D Printing Context Badge */}
       <div className="absolute bottom-4 right-4 z-10 pointer-events-auto">
         <div className="bg-card/80 backdrop-blur-md rounded-lg px-3 py-2 border border-border/50">
           <p className="text-[10px] text-muted-foreground font-mono">
