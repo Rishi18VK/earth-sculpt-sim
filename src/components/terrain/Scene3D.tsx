@@ -3,6 +3,7 @@ import { OrbitControls, Sky, Stars, PerspectiveCamera } from "@react-three/drei"
 import TerrainMesh from "./TerrainMesh";
 import MeasurementMarkers from "./MeasurementMarkers";
 import MiniMap from "./MiniMap";
+import BiomeObjects from "./BiomeObjects";
 import { Suspense } from "react";
 import { BiomeConfig } from "@/lib/biomes";
 
@@ -64,6 +65,7 @@ export default function Scene3D({ onPointClick, pointA, pointB, biome }: Scene3D
         <Stars radius={100} depth={50} count={3000} factor={4} saturation={0.5} fade speed={1} />
         <fog attach="fog" args={[biome.fogColor, biome.fogNear, biome.fogFar]} />
         <TerrainMesh onPointClick={onPointClick} biome={biome} />
+        <BiomeObjects biome={biome} />
         <MeasurementMarkers pointA={pointA || null} pointB={pointB || null} />
         <MiniMap biome={biome} />
       </Suspense>
