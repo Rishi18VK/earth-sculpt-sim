@@ -5,8 +5,13 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Download, Printer, Box, Layers, Loader2 } from "lucide-react";
 import { downloadSTL, getEstimatedFileSize } from "@/lib/stl-export";
+import { BiomeConfig } from "@/lib/biomes";
 
-export default function ExportPanel() {
+interface ExportPanelProps {
+  biome: BiomeConfig;
+}
+
+export default function ExportPanel({ biome }: ExportPanelProps) {
   const [resolution, setResolution] = useState(100);
   const [size, setSize] = useState(80);
   const [baseThickness, setBaseThickness] = useState(3);
@@ -23,6 +28,7 @@ export default function ExportPanel() {
           segments: resolution,
           baseThickness,
           scale,
+          biome,
         });
       } finally {
         setExporting(false);
