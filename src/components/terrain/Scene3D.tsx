@@ -4,6 +4,7 @@ import TerrainMesh from "./TerrainMesh";
 import MeasurementMarkers from "./MeasurementMarkers";
 import MiniMap from "./MiniMap";
 import { Suspense } from "react";
+import { BiomeConfig } from "@/lib/biomes";
 
 interface MeasurementPoint {
   position: [number, number, number];
@@ -15,12 +16,13 @@ interface Scene3DProps {
   onPointClick?: (info: { type: string; height: number; position: [number, number, number] }) => void;
   pointA?: MeasurementPoint | null;
   pointB?: MeasurementPoint | null;
+  biome: BiomeConfig;
 }
 
-function Lights() {
+function Lights({ biome }: { biome: BiomeConfig }) {
   return (
     <>
-      <ambientLight intensity={0.4} />
+      <ambientLight intensity={biome.ambientIntensity} />
       <directionalLight
         position={[20, 30, 10]}
         intensity={1.2}
@@ -39,7 +41,7 @@ function Lights() {
   );
 }
 
-export default function Scene3D({ onPointClick, pointA, pointB }: Scene3DProps) {
+export default function Scene3D({ onPointClick, pointA, pointB, biome }: Scene3DProps) {
   return (
     <Canvas
       shadows
@@ -51,19 +53,19 @@ export default function Scene3D({ onPointClick, pointA, pointB }: Scene3DProps) 
       <color attach="background" args={["#0a1628"]} />
 
       <Suspense fallback={null}>
-        <Lights />
+        <Lights biome={biome} />
         <Sky
-          sunPosition={[100, 20, 100]}
-          inclination={0.5}
-          azimuth={0.25}
-          turbidity={8}
-          rayleigh={2}
+          sunPosition={biome.sunPosition}
+          inclination={biome.skyInclination}
+          azimuth={biome.skyAzimuth}
+          turbidity={biome.skyTurbidity}
+          rayleigh={biome.skyRayleigh}
         />
         <Stars radius={100} depth={50} count={3000} factor={4} saturation={0.5} fade speed={1} />
-        <fog attach="fog" args={["#a0c4e8", 40, 100]} />
-        <TerrainMesh onPointClick={onPointClick} />
+        <fog attach="fog" args={[biome.fogColor, biome.fogNear, biome.fogFar]} />
+        <TerrainMesh onPointClick={onPointClick} biome={biome} />
         <MeasurementMarkers pointA={pointA || null} pointB={pointB || null} />
-        <MiniMap />
+        <MiniMap biome={biome} />
       </Suspense>
 
       <OrbitControls

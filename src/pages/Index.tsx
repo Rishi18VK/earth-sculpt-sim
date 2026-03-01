@@ -4,8 +4,10 @@ import InfoPanel from "@/components/terrain/InfoPanel";
 import TerrainLegend from "@/components/terrain/TerrainLegend";
 import MeasurementPanel from "@/components/terrain/MeasurementPanel";
 import ExportPanel from "@/components/terrain/ExportPanel";
+import BiomeSelector from "@/components/terrain/BiomeSelector";
 import { Badge } from "@/components/ui/badge";
 import { Mountain, Compass } from "lucide-react";
+import { BIOMES, BiomeId } from "@/lib/biomes";
 
 interface TerrainInfo {
   type: string;
@@ -18,6 +20,9 @@ const Index = () => {
   const [measureMode, setMeasureMode] = useState(false);
   const [pointA, setPointA] = useState<TerrainInfo | null>(null);
   const [pointB, setPointB] = useState<TerrainInfo | null>(null);
+  const [currentBiome, setCurrentBiome] = useState<BiomeId>("earth");
+
+  const biome = BIOMES[currentBiome];
 
   const handlePointClick = useCallback(
     (info: TerrainInfo) => {
@@ -51,10 +56,18 @@ const Index = () => {
     }
   };
 
+  const handleBiomeChange = (id: BiomeId) => {
+    setCurrentBiome(id);
+    setSelectedInfo(null);
+    setPointA(null);
+    setPointB(null);
+    setMeasureMode(false);
+  };
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-background">
       <div className="absolute inset-0">
-        <Scene3D onPointClick={handlePointClick} pointA={pointA} pointB={pointB} />
+        <Scene3D onPointClick={handlePointClick} pointA={pointA} pointB={pointB} biome={biome} />
       </div>
 
       {/* Top Bar */}
@@ -64,7 +77,7 @@ const Index = () => {
             <Mountain className="h-5 w-5 text-primary" />
             <h1 className="text-sm font-bold text-foreground">TerraCraft 3D</h1>
             <Badge variant="secondary" className="text-[10px]">
-              R&D Explorer
+              {biome.emoji} {biome.name}
             </Badge>
           </div>
         </div>
@@ -76,6 +89,7 @@ const Index = () => {
 
       {/* Right Side Panels */}
       <div className="absolute top-20 right-4 z-10 w-64 space-y-3 pointer-events-auto max-h-[calc(100vh-7rem)] overflow-y-auto">
+        <BiomeSelector currentBiome={currentBiome} onBiomeChange={handleBiomeChange} />
         <MeasurementPanel
           measureMode={measureMode}
           onToggleMeasure={handleToggleMeasure}
@@ -84,7 +98,7 @@ const Index = () => {
           pointB={pointB}
         />
         {!measureMode && <InfoPanel info={selectedInfo} />}
-        <ExportPanel />
+        <ExportPanel biome={biome} />
       </div>
 
       {/* Measure mode indicator */}
@@ -101,7 +115,7 @@ const Index = () => {
       {/* Bottom Legend */}
       <div className="absolute bottom-4 left-4 right-4 z-10 pointer-events-none">
         <div className="pointer-events-auto inline-block bg-card/80 backdrop-blur-md rounded-lg px-4 py-2 border border-border/50">
-          <TerrainLegend />
+          <TerrainLegend biome={biome} />
         </div>
       </div>
 

@@ -2,94 +2,66 @@ import { useRef, useEffect, useCallback } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
+import { BiomeConfig, biomeNoise, biomeColorHex } from "@/lib/biomes";
 
-function noise(x: number, z: number): number {
-  return (
-    Math.sin(x * 0.3) * Math.cos(z * 0.3) * 2 +
-    Math.sin(x * 0.7 + 1.3) * Math.cos(z * 0.5 + 0.7) * 1.5 +
-    Math.sin(x * 1.5 + 2.1) * Math.cos(z * 1.2 + 1.1) * 0.7 +
-    Math.sin(x * 3.0) * Math.cos(z * 2.8) * 0.3
-  );
+interface MiniMapProps {
+  biome: BiomeConfig;
 }
 
-function getColor(height: number): string {
-  if (height < -1.5) return "#1a3a5c";
-  if (height < -0.5) return "#2a6b8a";
-  if (height < 0.0) return "#c2b280";
-  if (height < 1.0) return "#4a8c3f";
-  if (height < 2.0) return "#3a6b30";
-  if (height < 3.0) return "#8b7355";
-  return "#dce8f0";
-}
-
-export default function MiniMap() {
+export default function MiniMap({ biome }: MiniMapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const terrainCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const cameraRef = useRef<{ x: number; z: number; rotY: number }>({ x: 0, z: 0, rotY: 0 });
-  const drawnRef = useRef(false);
+  const lastBiomeRef = useRef<string>("");
   const { camera } = useThree();
 
-  const drawTerrain = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || drawnRef.current) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+  const size = 140;
+  const terrainSize = 80;
+  const scale = size / terrainSize;
 
-    const size = 140;
-    const terrainSize = 80;
-    const scale = size / terrainSize;
+  const drawTerrainToBuffer = useCallback(() => {
+    if (!terrainCanvasRef.current) {
+      terrainCanvasRef.current = document.createElement("canvas");
+      terrainCanvasRef.current.width = size;
+      terrainCanvasRef.current.height = size;
+    }
+    const ctx = terrainCanvasRef.current.getContext("2d");
+    if (!ctx) return;
 
     for (let px = 0; px < size; px++) {
       for (let py = 0; py < size; py++) {
         const x = (px / scale) - terrainSize / 2;
         const z = (py / scale) - terrainSize / 2;
-        const h = noise(x, z);
-        ctx.fillStyle = getColor(h);
+        const h = biomeNoise(x, z, biome);
+        ctx.fillStyle = biomeColorHex(h, biome);
         ctx.fillRect(px, py, 1, 1);
       }
     }
-    drawnRef.current = true;
-  }, []);
+    lastBiomeRef.current = biome.id;
+  }, [biome, scale]);
 
   useEffect(() => {
-    drawTerrain();
-  }, [drawTerrain]);
+    drawTerrainToBuffer();
+  }, [drawTerrainToBuffer]);
 
   useFrame(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !terrainCanvasRef.current) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    const size = 140;
-    const terrainSize = 80;
-    const scale = size / terrainSize;
+    if (lastBiomeRef.current !== biome.id) drawTerrainToBuffer();
 
+    // Draw cached terrain
+    ctx.drawImage(terrainCanvasRef.current, 0, 0);
+
+    // Camera info
     cameraRef.current.x = (camera.position.x + terrainSize / 2) * scale;
     cameraRef.current.z = (camera.position.z + terrainSize / 2) * scale;
-
     const dir = new THREE.Vector3();
     camera.getWorldDirection(dir);
     cameraRef.current.rotY = Math.atan2(dir.x, dir.z);
 
-    // Redraw terrain + camera overlay
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // Restore terrain (redraw if needed)
-    if (!drawnRef.current) drawTerrain();
-
-    // We need to redraw terrain each frame since we draw camera on top
-    // Use an offscreen approach: just redraw terrain + camera
-    const tSize = 140;
-    for (let px = 0; px < tSize; px++) {
-      for (let py = 0; py < tSize; py++) {
-        const x = (px / scale) - terrainSize / 2;
-        const z = (py / scale) - terrainSize / 2;
-        const h = noise(x, z);
-        ctx.fillStyle = getColor(h);
-        ctx.fillRect(px, py, 1, 1);
-      }
-    }
-
-    // Draw camera position
     const cx = cameraRef.current.x;
     const cz = cameraRef.current.z;
     const rot = cameraRef.current.rotY;
@@ -122,14 +94,7 @@ export default function MiniMap() {
 
   return (
     <Html position={[0, 0, 0]} style={{ pointerEvents: "none" }} wrapperClass="minimap-wrapper">
-      <div
-        style={{
-          position: "fixed",
-          bottom: "16px",
-          left: "16px",
-          pointerEvents: "auto",
-        }}
-      >
+      <div style={{ position: "fixed", bottom: "16px", left: "16px", pointerEvents: "auto" }}>
         <div
           style={{
             background: "rgba(10, 22, 40, 0.85)",
@@ -142,12 +107,7 @@ export default function MiniMap() {
           <div style={{ fontSize: "9px", color: "#94a3b8", fontFamily: "monospace", marginBottom: "4px", textAlign: "center" }}>
             TOP VIEW
           </div>
-          <canvas
-            ref={canvasRef}
-            width={140}
-            height={140}
-            style={{ borderRadius: "4px", display: "block" }}
-          />
+          <canvas ref={canvasRef} width={size} height={size} style={{ borderRadius: "4px", display: "block" }} />
         </div>
       </div>
     </Html>
