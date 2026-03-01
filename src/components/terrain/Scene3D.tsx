@@ -2,6 +2,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Sky, Stars, PerspectiveCamera } from "@react-three/drei";
 import TerrainMesh from "./TerrainMesh";
 import MeasurementMarkers from "./MeasurementMarkers";
+import MiniMap from "./MiniMap";
 import { Suspense } from "react";
 
 interface MeasurementPoint {
@@ -62,6 +63,7 @@ export default function Scene3D({ onPointClick, pointA, pointB }: Scene3DProps) 
         <fog attach="fog" args={["#a0c4e8", 40, 100]} />
         <TerrainMesh onPointClick={onPointClick} />
         <MeasurementMarkers pointA={pointA || null} pointB={pointB || null} />
+        <MiniMap />
       </Suspense>
 
       <OrbitControls
