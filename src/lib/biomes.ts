@@ -178,12 +178,13 @@ export const BIOMES: Record<BiomeId, BiomeConfig> = {
   },
 };
 
-export function biomeNoise(x: number, z: number, biome: BiomeConfig): number {
+export function biomeNoise(x: number, z: number, biome: BiomeConfig, seed: number = 0): number {
   let total = 0;
+  const seedOffset = seed * 100;
   for (let i = 0; i < biome.noiseScale.length; i++) {
     const s = biome.noiseScale[i];
     const a = biome.noiseAmplitude[i];
-    const o = biome.noiseOffset[i];
+    const o = biome.noiseOffset[i] + seedOffset;
     total += Math.sin(x * s + o) * Math.cos(z * s + o * 0.7) * a;
   }
   return total;

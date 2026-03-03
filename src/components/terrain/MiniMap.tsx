@@ -6,9 +6,10 @@ import { BiomeConfig, biomeNoise, biomeColorHex } from "@/lib/biomes";
 
 interface MiniMapProps {
   biome: BiomeConfig;
+  seed?: number;
 }
 
-export default function MiniMap({ biome }: MiniMapProps) {
+export default function MiniMap({ biome, seed = 0 }: MiniMapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const terrainCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const cameraRef = useRef<{ x: number; z: number; rotY: number }>({ x: 0, z: 0, rotY: 0 });
@@ -32,13 +33,13 @@ export default function MiniMap({ biome }: MiniMapProps) {
       for (let py = 0; py < size; py++) {
         const x = (px / scale) - terrainSize / 2;
         const z = (py / scale) - terrainSize / 2;
-        const h = biomeNoise(x, z, biome);
+        const h = biomeNoise(x, z, biome, seed);
         ctx.fillStyle = biomeColorHex(h, biome);
         ctx.fillRect(px, py, 1, 1);
       }
     }
-    lastBiomeRef.current = biome.id;
-  }, [biome, scale]);
+    lastBiomeRef.current = `${biome.id}-${seed}`;
+  }, [biome, seed, scale]);
 
   useEffect(() => {
     drawTerrainToBuffer();
@@ -50,7 +51,7 @@ export default function MiniMap({ biome }: MiniMapProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    if (lastBiomeRef.current !== biome.id) drawTerrainToBuffer();
+    if (lastBiomeRef.current !== `${biome.id}-${seed}`) drawTerrainToBuffer();
 
     // Draw cached terrain
     ctx.drawImage(terrainCanvasRef.current, 0, 0);

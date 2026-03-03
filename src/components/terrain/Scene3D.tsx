@@ -18,6 +18,7 @@ interface Scene3DProps {
   pointA?: MeasurementPoint | null;
   pointB?: MeasurementPoint | null;
   biome: BiomeConfig;
+  seed?: number;
 }
 
 function Lights({ biome }: { biome: BiomeConfig }) {
@@ -42,7 +43,7 @@ function Lights({ biome }: { biome: BiomeConfig }) {
   );
 }
 
-export default function Scene3D({ onPointClick, pointA, pointB, biome }: Scene3DProps) {
+export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0 }: Scene3DProps) {
   return (
     <Canvas
       shadows
@@ -64,10 +65,10 @@ export default function Scene3D({ onPointClick, pointA, pointB, biome }: Scene3D
         />
         <Stars radius={100} depth={50} count={3000} factor={4} saturation={0.5} fade speed={1} />
         <fog attach="fog" args={[biome.fogColor, biome.fogNear, biome.fogFar]} />
-        <TerrainMesh onPointClick={onPointClick} biome={biome} />
-        <BiomeObjects biome={biome} />
+        <TerrainMesh onPointClick={onPointClick} biome={biome} seed={seed} />
+        <BiomeObjects biome={biome} seed={seed} />
         <MeasurementMarkers pointA={pointA || null} pointB={pointB || null} />
-        <MiniMap biome={biome} />
+        <MiniMap biome={biome} seed={seed} />
       </Suspense>
 
       <OrbitControls
