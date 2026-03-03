@@ -7,10 +7,11 @@ interface ExportOptions {
   baseThickness: number;
   scale: number;
   biome: BiomeConfig;
+  seed?: number;
 }
 
 export function generateSTLBinary(options: ExportOptions): ArrayBuffer {
-  const { size, segments, baseThickness, scale, biome } = options;
+  const { size, segments, baseThickness, scale, biome, seed = 0 } = options;
   const step = size / segments;
   const half = size / 2;
 
@@ -20,7 +21,7 @@ export function generateSTLBinary(options: ExportOptions): ArrayBuffer {
     for (let ix = 0; ix <= segments; ix++) {
       const x = -half + ix * step;
       const z = -half + iz * step;
-      grid[iz][ix] = biomeNoise(x, z, biome);
+      grid[iz][ix] = biomeNoise(x, z, biome, seed);
     }
   }
 

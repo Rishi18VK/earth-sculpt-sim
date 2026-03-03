@@ -4,6 +4,7 @@ import { BiomeConfig, BiomeId, biomeNoise } from "@/lib/biomes";
 
 interface BiomeObjectsProps {
   biome: BiomeConfig;
+  seed?: number;
 }
 
 // Deterministic pseudo-random from seed
@@ -124,22 +125,23 @@ const biomeObjects: Record<BiomeId, { types: ObjectType[]; count: number; minHei
   tropical: { types: ["palmTree", "rock"], count: 50, minHeight: 0.3, maxHeight: 2.0, rockColor: "#6a8a6a" },
 };
 
-export default function BiomeObjects({ biome }: BiomeObjectsProps) {
+export default function BiomeObjects({ biome, seed = 0 }: BiomeObjectsProps) {
   const objects = useMemo(() => {
     const config = biomeObjects[biome.id];
     const placed: PlacedObject[] = [];
     const halfSize = 35;
+    const seedOffset = seed * 50;
 
     for (let i = 0; i < config.count; i++) {
-      const x = seededRandom(i * 3 + 0.1) * halfSize * 2 - halfSize;
-      const z = seededRandom(i * 3 + 1.1) * halfSize * 2 - halfSize;
-      const height = biomeNoise(x, z, biome);
+      const x = seededRandom(i * 3 + 0.1 + seedOffset) * halfSize * 2 - halfSize;
+      const z = seededRandom(i * 3 + 1.1 + seedOffset) * halfSize * 2 - halfSize;
+      const height = biomeNoise(x, z, biome, seed);
 
       if (height < config.minHeight || height > config.maxHeight) continue;
 
-      const typeIdx = Math.floor(seededRandom(i * 7 + 2.3) * config.types.length);
+      const typeIdx = Math.floor(seededRandom(i * 7 + 2.3 + seedOffset) * config.types.length);
       const type = config.types[typeIdx];
-      const scale = 0.6 + seededRandom(i * 11 + 3.7) * 0.8;
+      const scale = 0.6 + seededRandom(i * 11 + 3.7 + seedOffset) * 0.8;
 
       placed.push({
         type,
@@ -149,7 +151,7 @@ export default function BiomeObjects({ biome }: BiomeObjectsProps) {
       });
     }
     return placed;
-  }, [biome]);
+  }, [biome, seed]);
 
   return (
     <group>

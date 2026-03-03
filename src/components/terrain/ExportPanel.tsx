@@ -9,9 +9,10 @@ import { BiomeConfig } from "@/lib/biomes";
 
 interface ExportPanelProps {
   biome: BiomeConfig;
+  seed?: number;
 }
 
-export default function ExportPanel({ biome }: ExportPanelProps) {
+export default function ExportPanel({ biome, seed = 0 }: ExportPanelProps) {
   const [resolution, setResolution] = useState(100);
   const [size, setSize] = useState(80);
   const [baseThickness, setBaseThickness] = useState(3);
@@ -29,6 +30,7 @@ export default function ExportPanel({ biome }: ExportPanelProps) {
           baseThickness,
           scale,
           biome,
+          seed,
         });
       } finally {
         setExporting(false);

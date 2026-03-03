@@ -6,9 +6,10 @@ import { BiomeConfig, biomeNoise, biomeColor, biomeTerrainType } from "@/lib/bio
 interface TerrainMeshProps {
   onPointClick?: (info: { type: string; height: number; position: [number, number, number] }) => void;
   biome: BiomeConfig;
+  seed?: number;
 }
 
-export default function TerrainMesh({ onPointClick, biome }: TerrainMeshProps) {
+export default function TerrainMesh({ onPointClick, biome, seed = 0 }: TerrainMeshProps) {
   const meshRef = useRef<THREE.Mesh>(null);
 
   const { geometry, waterGeometry } = useMemo(() => {
@@ -23,7 +24,7 @@ export default function TerrainMesh({ onPointClick, biome }: TerrainMeshProps) {
     for (let i = 0; i < positions.count; i++) {
       const x = positions.getX(i);
       const z = positions.getZ(i);
-      const height = biomeNoise(x, z, biome);
+      const height = biomeNoise(x, z, biome, seed);
       positions.setY(i, height);
 
       const color = biomeColor(height, biome);
@@ -39,7 +40,7 @@ export default function TerrainMesh({ onPointClick, biome }: TerrainMeshProps) {
     waterGeo.rotateX(-Math.PI / 2);
 
     return { geometry: geo, waterGeometry: waterGeo };
-  }, [biome]);
+  }, [biome, seed]);
 
   const waterRef = useRef<THREE.Mesh>(null);
 
