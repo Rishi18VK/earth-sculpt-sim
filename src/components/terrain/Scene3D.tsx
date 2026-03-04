@@ -4,6 +4,7 @@ import TerrainMesh from "./TerrainMesh";
 import MeasurementMarkers from "./MeasurementMarkers";
 import MiniMap from "./MiniMap";
 import BiomeObjects from "./BiomeObjects";
+import WeatherEffects from "./WeatherEffects";
 import { Suspense } from "react";
 import { BiomeConfig } from "@/lib/biomes";
 
@@ -67,6 +68,7 @@ export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0 
         <fog attach="fog" args={[biome.fogColor, biome.fogNear, biome.fogFar]} />
         <TerrainMesh onPointClick={onPointClick} biome={biome} seed={seed} />
         <BiomeObjects biome={biome} seed={seed} />
+        <WeatherEffects biome={biome} />
         <MeasurementMarkers pointA={pointA || null} pointB={pointB || null} />
         <MiniMap biome={biome} seed={seed} />
       </Suspense>
