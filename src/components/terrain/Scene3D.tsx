@@ -5,7 +5,9 @@ import MeasurementMarkers from "./MeasurementMarkers";
 import MiniMap from "./MiniMap";
 import BiomeObjects from "./BiomeObjects";
 import WeatherEffects from "./WeatherEffects";
-import { Suspense, useMemo } from "react";
+import { Suspense, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
 import { BiomeConfig } from "@/lib/biomes";
 
 interface MeasurementPoint {
@@ -23,14 +25,67 @@ interface Scene3DProps {
   isNight?: boolean;
 }
 
-function Lights({ biome, isNight }: { biome: BiomeConfig; isNight: boolean }) {
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
+}
+
+function lerpColor(a: THREE.Color, b: THREE.Color, t: number, out: THREE.Color) {
+  out.r = lerp(a.r, b.r, t);
+  out.g = lerp(a.g, b.g, t);
+  out.b = lerp(a.b, b.b, t);
+  return out;
+}
+
+function darkenColor(hex: string, factor: number): string {
+  const r = Math.round(parseInt(hex.slice(1, 3), 16) * factor);
+  const g = Math.round(parseInt(hex.slice(3, 5), 16) * factor);
+  const b = Math.round(parseInt(hex.slice(5, 7), 16) * factor);
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+}
+
+function AnimatedLights({ biome, isNight }: { biome: BiomeConfig; isNight: boolean }) {
+  const ambientRef = useRef<THREE.AmbientLight>(null);
+  const dirRef = useRef<THREE.DirectionalLight>(null);
+  const pointRef = useRef<THREE.PointLight>(null);
+  const tRef = useRef(isNight ? 1 : 0);
+
+  const dayAmbientColor = new THREE.Color("#ffffff");
+  const nightAmbientColor = new THREE.Color("#4466aa");
+  const dayDirColor = new THREE.Color("#ffffff");
+  const nightDirColor = new THREE.Color("#8899cc");
+  const dayPointColor = new THREE.Color("#88ccff");
+  const nightPointColor = new THREE.Color("#6688bb");
+  const tmpColor = new THREE.Color();
+  const dayDirPos = new THREE.Vector3(20, 30, 10);
+  const nightDirPos = new THREE.Vector3(-20, 20, -10);
+
+  useFrame((_, delta) => {
+    const target = isNight ? 1 : 0;
+    tRef.current += (target - tRef.current) * Math.min(delta * 2, 0.08);
+    const t = tRef.current;
+
+    if (ambientRef.current) {
+      ambientRef.current.intensity = lerp(biome.ambientIntensity, biome.ambientIntensity * 0.15, t);
+      lerpColor(dayAmbientColor, nightAmbientColor, t, ambientRef.current.color);
+    }
+    if (dirRef.current) {
+      dirRef.current.intensity = lerp(1.2, 0.2, t);
+      lerpColor(dayDirColor, nightDirColor, t, dirRef.current.color);
+      dirRef.current.position.lerpVectors(dayDirPos, nightDirPos, t);
+    }
+    if (pointRef.current) {
+      pointRef.current.intensity = lerp(0.3, 0.1, t);
+      lerpColor(dayPointColor, nightPointColor, t, pointRef.current.color);
+    }
+  });
+
   return (
     <>
-      <ambientLight intensity={isNight ? biome.ambientIntensity * 0.15 : biome.ambientIntensity} color={isNight ? "#4466aa" : "#ffffff"} />
+      <ambientLight ref={ambientRef} intensity={biome.ambientIntensity} />
       <directionalLight
-        position={isNight ? [-20, 20, -10] : [20, 30, 10]}
-        intensity={isNight ? 0.2 : 1.2}
-        color={isNight ? "#8899cc" : "#ffffff"}
+        ref={dirRef}
+        position={[20, 30, 10]}
+        intensity={1.2}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
@@ -41,24 +96,96 @@ function Lights({ biome, isNight }: { biome: BiomeConfig; isNight: boolean }) {
         shadow-camera-top={50}
         shadow-camera-bottom={-50}
       />
-      <pointLight position={[-20, 15, -20]} intensity={isNight ? 0.1 : 0.3} color={isNight ? "#6688bb" : "#88ccff"} />
+      <pointLight ref={pointRef} position={[-20, 15, -20]} intensity={0.3} color="#88ccff" />
     </>
   );
 }
 
-function darkenColor(hex: string, factor: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  const nr = Math.round(r * factor);
-  const ng = Math.round(g * factor);
-  const nb = Math.round(b * factor);
-  return `#${nr.toString(16).padStart(2, "0")}${ng.toString(16).padStart(2, "0")}${nb.toString(16).padStart(2, "0")}`;
+function AnimatedFog({ biome, isNight }: { biome: BiomeConfig; isNight: boolean }) {
+  const fogRef = useRef<THREE.Fog>(null);
+  const tRef = useRef(isNight ? 1 : 0);
+  const dayColor = new THREE.Color(biome.fogColor);
+  const nightColor = new THREE.Color(darkenColor(biome.fogColor, 0.15));
+  const tmpColor = new THREE.Color();
+
+  useFrame((_, delta) => {
+    const target = isNight ? 1 : 0;
+    tRef.current += (target - tRef.current) * Math.min(delta * 2, 0.08);
+    const t = tRef.current;
+    if (fogRef.current) {
+      dayColor.set(biome.fogColor);
+      nightColor.set(darkenColor(biome.fogColor, 0.15));
+      lerpColor(dayColor, nightColor, t, fogRef.current.color);
+      fogRef.current.near = lerp(biome.fogNear, biome.fogNear * 0.6, t);
+      fogRef.current.far = lerp(biome.fogFar, biome.fogFar * 0.7, t);
+    }
+  });
+
+  return <fog ref={fogRef} attach="fog" args={[biome.fogColor, biome.fogNear, biome.fogFar]} />;
+}
+
+function AnimatedBackground({ isNight }: { isNight: boolean }) {
+  const ref = useRef<THREE.Color>(null);
+  const tRef = useRef(isNight ? 1 : 0);
+  const dayBg = new THREE.Color("#0a1628");
+  const nightBg = new THREE.Color("#050a18");
+
+  useFrame((_, delta) => {
+    const target = isNight ? 1 : 0;
+    tRef.current += (target - tRef.current) * Math.min(delta * 2, 0.08);
+    if (ref.current) {
+      lerpColor(dayBg, nightBg, tRef.current, ref.current);
+    }
+  });
+
+  return <color ref={ref} attach="background" args={["#0a1628"]} />;
+}
+
+function AnimatedSky({ biome, isNight }: { biome: BiomeConfig; isNight: boolean }) {
+  const ref = useRef<any>(null);
+  const tRef = useRef(isNight ? 1 : 0);
+
+  useFrame((_, delta) => {
+    const target = isNight ? 1 : 0;
+    tRef.current += (target - tRef.current) * Math.min(delta * 2, 0.08);
+    if (ref.current) {
+      const t = tRef.current;
+      // Fade sun below horizon for night
+      const sunY = lerp(biome.sunPosition[1], -50, t);
+      ref.current.material.uniforms.sunPosition.value.set(biome.sunPosition[0], sunY, biome.sunPosition[2]);
+    }
+  });
+
+  return (
+    <Sky
+      ref={ref}
+      sunPosition={biome.sunPosition}
+      inclination={biome.skyInclination}
+      azimuth={biome.skyAzimuth}
+      turbidity={biome.skyTurbidity}
+      rayleigh={biome.skyRayleigh}
+    />
+  );
+}
+
+function AnimatedStars({ isNight }: { isNight: boolean }) {
+  const ref = useRef<THREE.Points>(null);
+  const tRef = useRef(isNight ? 1 : 0);
+
+  useFrame((_, delta) => {
+    const target = isNight ? 1 : 0;
+    tRef.current += (target - tRef.current) * Math.min(delta * 2, 0.08);
+    if (ref.current && ref.current.material) {
+      (ref.current.material as THREE.PointsMaterial).opacity = lerp(0.3, 1, tRef.current);
+    }
+  });
+
+  return (
+    <Stars ref={ref} radius={100} depth={50} count={6000} factor={5} saturation={0.7} fade speed={1} />
+  );
 }
 
 export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0, isNight = false }: Scene3DProps) {
-  const nightFog = useMemo(() => darkenColor(biome.fogColor, 0.15), [biome.fogColor]);
-
   return (
     <Canvas
       shadows
@@ -67,29 +194,13 @@ export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0,
       style={{ width: "100%", height: "100%" }}
     >
       <PerspectiveCamera makeDefault position={[25, 20, 25]} fov={60} near={0.1} far={500} />
-      <color attach="background" args={[isNight ? "#050a18" : "#0a1628"]} />
+      <AnimatedBackground isNight={isNight} />
 
       <Suspense fallback={null}>
-        <Lights biome={biome} isNight={isNight} />
-        {!isNight && (
-          <Sky
-            sunPosition={biome.sunPosition}
-            inclination={biome.skyInclination}
-            azimuth={biome.skyAzimuth}
-            turbidity={biome.skyTurbidity}
-            rayleigh={biome.skyRayleigh}
-          />
-        )}
-        <Stars
-          radius={100}
-          depth={50}
-          count={isNight ? 8000 : 3000}
-          factor={isNight ? 6 : 4}
-          saturation={isNight ? 0.8 : 0.5}
-          fade
-          speed={1}
-        />
-        <fog attach="fog" args={[isNight ? nightFog : biome.fogColor, isNight ? biome.fogNear * 0.6 : biome.fogNear, isNight ? biome.fogFar * 0.7 : biome.fogFar]} />
+        <AnimatedLights biome={biome} isNight={isNight} />
+        <AnimatedSky biome={biome} isNight={isNight} />
+        <AnimatedStars isNight={isNight} />
+        <AnimatedFog biome={biome} isNight={isNight} />
         <TerrainMesh onPointClick={onPointClick} biome={biome} seed={seed} />
         <BiomeObjects biome={biome} seed={seed} />
         <WeatherEffects biome={biome} />
