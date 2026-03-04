@@ -5,6 +5,7 @@ import TerrainLegend from "@/components/terrain/TerrainLegend";
 import MeasurementPanel from "@/components/terrain/MeasurementPanel";
 import ExportPanel from "@/components/terrain/ExportPanel";
 import BiomeSelector from "@/components/terrain/BiomeSelector";
+import DayNightToggle from "@/components/terrain/DayNightToggle";
 import { Badge } from "@/components/ui/badge";
 import { Mountain, Compass } from "lucide-react";
 import { BIOMES, BiomeId } from "@/lib/biomes";
@@ -22,6 +23,7 @@ const Index = () => {
   const [pointB, setPointB] = useState<TerrainInfo | null>(null);
   const [currentBiome, setCurrentBiome] = useState<BiomeId>("earth");
   const [seed, setSeed] = useState(1);
+  const [isNight, setIsNight] = useState(false);
 
   const biome = BIOMES[currentBiome];
 
@@ -76,7 +78,7 @@ const Index = () => {
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-background">
       <div className="absolute inset-0">
-        <Scene3D onPointClick={handlePointClick} pointA={pointA} pointB={pointB} biome={biome} seed={seed} />
+        <Scene3D onPointClick={handlePointClick} pointA={pointA} pointB={pointB} biome={biome} seed={seed} isNight={isNight} />
       </div>
 
       {/* Top Bar */}
@@ -98,6 +100,7 @@ const Index = () => {
 
       {/* Right Side Panels */}
       <div className="absolute top-20 right-4 z-10 w-64 space-y-3 pointer-events-auto max-h-[calc(100vh-7rem)] overflow-y-auto">
+        <DayNightToggle isNight={isNight} onToggle={() => setIsNight(!isNight)} />
         <BiomeSelector currentBiome={currentBiome} onBiomeChange={handleBiomeChange} seed={seed} onSeedChange={handleSeedChange} />
         <MeasurementPanel
           measureMode={measureMode}
