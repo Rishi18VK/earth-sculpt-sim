@@ -5,7 +5,7 @@ import MeasurementMarkers from "./MeasurementMarkers";
 import MiniMap from "./MiniMap";
 import BiomeObjects from "./BiomeObjects";
 import WeatherEffects from "./WeatherEffects";
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { BiomeConfig } from "@/lib/biomes";
 
 interface MeasurementPoint {
@@ -20,15 +20,17 @@ interface Scene3DProps {
   pointB?: MeasurementPoint | null;
   biome: BiomeConfig;
   seed?: number;
+  isNight?: boolean;
 }
 
-function Lights({ biome }: { biome: BiomeConfig }) {
+function Lights({ biome, isNight }: { biome: BiomeConfig; isNight: boolean }) {
   return (
     <>
-      <ambientLight intensity={biome.ambientIntensity} />
+      <ambientLight intensity={isNight ? biome.ambientIntensity * 0.15 : biome.ambientIntensity} color={isNight ? "#4466aa" : "#ffffff"} />
       <directionalLight
-        position={[20, 30, 10]}
-        intensity={1.2}
+        position={isNight ? [-20, 20, -10] : [20, 30, 10]}
+        intensity={isNight ? 0.2 : 1.2}
+        color={isNight ? "#8899cc" : "#ffffff"}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
@@ -39,12 +41,24 @@ function Lights({ biome }: { biome: BiomeConfig }) {
         shadow-camera-top={50}
         shadow-camera-bottom={-50}
       />
-      <pointLight position={[-20, 15, -20]} intensity={0.3} color="#88ccff" />
+      <pointLight position={[-20, 15, -20]} intensity={isNight ? 0.1 : 0.3} color={isNight ? "#6688bb" : "#88ccff"} />
     </>
   );
 }
 
-export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0 }: Scene3DProps) {
+function darkenColor(hex: string, factor: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const nr = Math.round(r * factor);
+  const ng = Math.round(g * factor);
+  const nb = Math.round(b * factor);
+  return `#${nr.toString(16).padStart(2, "0")}${ng.toString(16).padStart(2, "0")}${nb.toString(16).padStart(2, "0")}`;
+}
+
+export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0, isNight = false }: Scene3DProps) {
+  const nightFog = useMemo(() => darkenColor(biome.fogColor, 0.15), [biome.fogColor]);
+
   return (
     <Canvas
       shadows
@@ -53,19 +67,29 @@ export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0 
       style={{ width: "100%", height: "100%" }}
     >
       <PerspectiveCamera makeDefault position={[25, 20, 25]} fov={60} near={0.1} far={500} />
-      <color attach="background" args={["#0a1628"]} />
+      <color attach="background" args={[isNight ? "#050a18" : "#0a1628"]} />
 
       <Suspense fallback={null}>
-        <Lights biome={biome} />
-        <Sky
-          sunPosition={biome.sunPosition}
-          inclination={biome.skyInclination}
-          azimuth={biome.skyAzimuth}
-          turbidity={biome.skyTurbidity}
-          rayleigh={biome.skyRayleigh}
+        <Lights biome={biome} isNight={isNight} />
+        {!isNight && (
+          <Sky
+            sunPosition={biome.sunPosition}
+            inclination={biome.skyInclination}
+            azimuth={biome.skyAzimuth}
+            turbidity={biome.skyTurbidity}
+            rayleigh={biome.skyRayleigh}
+          />
+        )}
+        <Stars
+          radius={100}
+          depth={50}
+          count={isNight ? 8000 : 3000}
+          factor={isNight ? 6 : 4}
+          saturation={isNight ? 0.8 : 0.5}
+          fade
+          speed={1}
         />
-        <Stars radius={100} depth={50} count={3000} factor={4} saturation={0.5} fade speed={1} />
-        <fog attach="fog" args={[biome.fogColor, biome.fogNear, biome.fogFar]} />
+        <fog attach="fog" args={[isNight ? nightFog : biome.fogColor, isNight ? biome.fogNear * 0.6 : biome.fogNear, isNight ? biome.fogFar * 0.7 : biome.fogFar]} />
         <TerrainMesh onPointClick={onPointClick} biome={biome} seed={seed} />
         <BiomeObjects biome={biome} seed={seed} />
         <WeatherEffects biome={biome} />
