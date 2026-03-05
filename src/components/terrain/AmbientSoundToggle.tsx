@@ -4,27 +4,28 @@ import { Slider } from "@/components/ui/slider";
 import { ambientAudio } from "@/lib/ambient-audio";
 import { BiomeId } from "@/lib/biomes";
 
-const BIOME_SOUND_LABELS: Record<BiomeId, string> = {
-  arctic: "❄️ Arctic Wind",
-  earth: "🌧️ Rain",
-  volcanic: "🌋 Rumbling",
-  desert: "🔥 Fire Crackling",
-  tropical: "🦗 Insects & Nature",
+const BIOME_SOUND_LABELS: Record<BiomeId, { day: string; night: string }> = {
+  arctic: { day: "❄️ Arctic Wind", night: "🌬️ Howling Blizzard" },
+  earth: { day: "🌧️ Rain", night: "🦗 Night Crickets" },
+  volcanic: { day: "🌋 Rumbling", night: "🔥 Glowing Embers" },
+  desert: { day: "🔥 Fire Crackling", night: "🐺 Desert Night" },
+  tropical: { day: "🦗 Insects & Nature", night: "🐸 Frogs & Crickets" },
 };
 
 interface AmbientSoundToggleProps {
   biome: BiomeId;
+  isNight?: boolean;
 }
 
-export default function AmbientSoundToggle({ biome }: AmbientSoundToggleProps) {
+export default function AmbientSoundToggle({ biome, isNight = false }: AmbientSoundToggleProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(30);
 
   useEffect(() => {
     if (isPlaying) {
-      ambientAudio.play(biome);
+      ambientAudio.play(biome, isNight);
     }
-  }, [biome, isPlaying]);
+  }, [biome, isNight, isPlaying]);
 
   useEffect(() => {
     ambientAudio.setVolume(volume / 100);
@@ -41,10 +42,14 @@ export default function AmbientSoundToggle({ biome }: AmbientSoundToggleProps) {
       ambientAudio.stop();
       setIsPlaying(false);
     } else {
-      ambientAudio.play(biome);
+      ambientAudio.play(biome, isNight);
       setIsPlaying(true);
     }
   };
+
+  const label = isNight
+    ? BIOME_SOUND_LABELS[biome].night
+    : BIOME_SOUND_LABELS[biome].day;
 
   return (
     <div className="bg-card/80 backdrop-blur-md rounded-lg border border-border/50 px-3 py-2 space-y-2">
@@ -58,7 +63,7 @@ export default function AmbientSoundToggle({ biome }: AmbientSoundToggleProps) {
           <VolumeX className="h-4 w-4 text-muted-foreground" />
         )}
         <span className="text-xs font-medium text-foreground">
-          {isPlaying ? BIOME_SOUND_LABELS[biome] : "Ambient Sound Off"}
+          {isPlaying ? label : "Ambient Sound Off"}
         </span>
       </button>
       {isPlaying && (

@@ -102,7 +102,7 @@ const Index = () => {
       {/* Right Side Panels */}
       <div className="absolute top-20 right-4 z-10 w-64 space-y-3 pointer-events-auto max-h-[calc(100vh-7rem)] overflow-y-auto">
         <DayNightToggle isNight={isNight} onToggle={() => setIsNight(!isNight)} />
-        <AmbientSoundToggle biome={currentBiome} />
+        <AmbientSoundToggle biome={currentBiome} isNight={isNight} />
         <BiomeSelector currentBiome={currentBiome} onBiomeChange={handleBiomeChange} seed={seed} onSeedChange={handleSeedChange} />
         <MeasurementPanel
           measureMode={measureMode}
