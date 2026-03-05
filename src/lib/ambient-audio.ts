@@ -7,6 +7,7 @@ class AmbientAudioEngine {
   private masterGain: GainNode | null = null;
   private nodes: AudioNode[] = [];
   private activeBiome: BiomeAudioType | null = null;
+  private activeNight: boolean = false;
   private isPlaying = false;
 
   private getContext(): AudioContext {
@@ -33,19 +34,21 @@ class AmbientAudioEngine {
     this.nodes = [];
   }
 
-  // --- Biome sound generators ---
-
-  private createWind(ctx: AudioContext, out: GainNode) {
-    // Filtered noise for wind
-    const bufferSize = ctx.sampleRate * 2;
+  private makeNoise(ctx: AudioContext, length = 2): AudioBuffer {
+    const bufferSize = ctx.sampleRate * length;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
       data[i] = Math.random() * 2 - 1;
     }
+    return buffer;
+  }
 
+  // ========== DAY SOUNDS ==========
+
+  private createWind(ctx: AudioContext, out: GainNode) {
     const source = ctx.createBufferSource();
-    source.buffer = buffer;
+    source.buffer = this.makeNoise(ctx);
     source.loop = true;
 
     const bp = ctx.createBiquadFilter();
@@ -53,7 +56,6 @@ class AmbientAudioEngine {
     bp.frequency.value = 400;
     bp.Q.value = 0.5;
 
-    // LFO to modulate filter frequency for gusting
     const lfo = ctx.createOscillator();
     lfo.type = "sine";
     lfo.frequency.value = 0.15;
@@ -75,16 +77,8 @@ class AmbientAudioEngine {
   }
 
   private createRain(ctx: AudioContext, out: GainNode) {
-    // Noise filtered for rain-like patter
-    const bufferSize = ctx.sampleRate * 2;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
-
     const source = ctx.createBufferSource();
-    source.buffer = buffer;
+    source.buffer = this.makeNoise(ctx);
     source.loop = true;
 
     const hp = ctx.createBiquadFilter();
@@ -105,7 +99,6 @@ class AmbientAudioEngine {
     gain.connect(out);
     source.start();
 
-    // Soft low rumble for thunder ambience
     const rumble = ctx.createOscillator();
     rumble.type = "sine";
     rumble.frequency.value = 55;
@@ -119,7 +112,6 @@ class AmbientAudioEngine {
   }
 
   private createVolcanic(ctx: AudioContext, out: GainNode) {
-    // Deep rumbling
     const osc1 = ctx.createOscillator();
     osc1.type = "sawtooth";
     osc1.frequency.value = 35;
@@ -133,7 +125,6 @@ class AmbientAudioEngine {
     lp.frequency.value = 150;
     lp.Q.value = 2;
 
-    // LFO for rumble modulation
     const lfo = ctx.createOscillator();
     lfo.type = "sine";
     lfo.frequency.value = 0.3;
@@ -153,12 +144,10 @@ class AmbientAudioEngine {
     osc1.start();
     osc2.start();
 
-    // Crackling noise
-    const bufferSize = ctx.sampleRate * 2;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const buffer = this.makeNoise(ctx);
     const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * (Math.random() > 0.97 ? 1 : 0.02);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = data[i] * (Math.random() > 0.97 ? 1 : 0.02);
     }
     const crackle = ctx.createBufferSource();
     crackle.buffer = buffer;
@@ -173,12 +162,10 @@ class AmbientAudioEngine {
   }
 
   private createDesertFire(ctx: AudioContext, out: GainNode) {
-    // Crackling fire effect
-    const bufferSize = ctx.sampleRate * 2;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const buffer = this.makeNoise(ctx);
     const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * (Math.random() > 0.92 ? 1 : 0.05);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = data[i] * (Math.random() > 0.92 ? 1 : 0.05);
     }
 
     const source = ctx.createBufferSource();
@@ -198,7 +185,6 @@ class AmbientAudioEngine {
     gain.connect(out);
     source.start();
 
-    // Gentle low hum for heat
     const hum = ctx.createOscillator();
     hum.type = "sine";
     hum.frequency.value = 80;
@@ -212,14 +198,12 @@ class AmbientAudioEngine {
   }
 
   private createTropicalInsects(ctx: AudioContext, out: GainNode) {
-    // Multiple oscillators at insect-like frequencies with modulation
     const freqs = [4200, 5800, 3600];
     freqs.forEach((f) => {
       const osc = ctx.createOscillator();
       osc.type = "sine";
       osc.frequency.value = f;
 
-      // AM modulation for chirping
       const am = ctx.createOscillator();
       am.type = "sine";
       am.frequency.value = 3 + Math.random() * 8;
@@ -240,15 +224,8 @@ class AmbientAudioEngine {
       this.nodes.push(osc, am, amGain, modGain);
     });
 
-    // Background nature noise
-    const bufferSize = ctx.sampleRate * 2;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
     const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
+    noise.buffer = this.makeNoise(ctx);
     noise.loop = true;
     const noiseBp = ctx.createBiquadFilter();
     noiseBp.type = "bandpass";
@@ -264,23 +241,325 @@ class AmbientAudioEngine {
     this.nodes.push(noise, noiseBp, noiseGain);
   }
 
+  // ========== NIGHT SOUNDS ==========
+
+  private createNightCrickets(ctx: AudioContext, out: GainNode) {
+    // Crickets: rapid chirping at ~4-5kHz with rhythmic AM
+    const chirpFreqs = [4800, 5200, 4400];
+    chirpFreqs.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = f;
+
+      // Fast AM for chirp pattern
+      const am = ctx.createOscillator();
+      am.type = "square";
+      am.frequency.value = 12 + i * 3; // staggered chirp rates
+      const amGain = ctx.createGain();
+      amGain.gain.value = 0.4;
+      am.connect(amGain);
+
+      const modGain = ctx.createGain();
+      modGain.gain.value = 0;
+      amGain.connect(modGain.gain);
+
+      osc.connect(modGain);
+      modGain.connect(out);
+
+      osc.start();
+      am.start();
+
+      this.nodes.push(osc, am, amGain, modGain);
+    });
+
+    // Soft background night hum
+    const noise = ctx.createBufferSource();
+    noise.buffer = this.makeNoise(ctx);
+    noise.loop = true;
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 800;
+    bp.Q.value = 0.2;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.value = 0.04;
+    noise.connect(bp);
+    bp.connect(noiseGain);
+    noiseGain.connect(out);
+    noise.start();
+
+    this.nodes.push(noise, bp, noiseGain);
+  }
+
+  private createHowlingWind(ctx: AudioContext, out: GainNode) {
+    // Stronger, lower wind with howling modulation
+    const source = ctx.createBufferSource();
+    source.buffer = this.makeNoise(ctx);
+    source.loop = true;
+
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 250;
+    bp.Q.value = 1.5;
+
+    // Slow sweep for howling effect
+    const lfo = ctx.createOscillator();
+    lfo.type = "sine";
+    lfo.frequency.value = 0.08;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 150;
+    lfo.connect(lfoGain);
+    lfoGain.connect(bp.frequency);
+    lfo.start();
+
+    // Second howl layer
+    const lfo2 = ctx.createOscillator();
+    lfo2.type = "triangle";
+    lfo2.frequency.value = 0.04;
+    const lfo2Gain = ctx.createGain();
+    lfo2Gain.gain.value = 100;
+    lfo2.connect(lfo2Gain);
+    lfo2Gain.connect(bp.frequency);
+    lfo2.start();
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0.7;
+
+    source.connect(bp);
+    bp.connect(gain);
+    gain.connect(out);
+    source.start();
+
+    // Eerie high whistling
+    const whistle = ctx.createOscillator();
+    whistle.type = "sine";
+    whistle.frequency.value = 1200;
+    const whistleLfo = ctx.createOscillator();
+    whistleLfo.type = "sine";
+    whistleLfo.frequency.value = 0.12;
+    const whistleLfoGain = ctx.createGain();
+    whistleLfoGain.gain.value = 300;
+    whistleLfo.connect(whistleLfoGain);
+    whistleLfoGain.connect(whistle.frequency);
+    whistleLfo.start();
+    const whistleGain = ctx.createGain();
+    whistleGain.gain.value = 0.06;
+    whistle.connect(whistleGain);
+    whistleGain.connect(out);
+    whistle.start();
+
+    this.nodes.push(source, bp, lfo, lfoGain, lfo2, lfo2Gain, gain, whistle, whistleLfo, whistleLfoGain, whistleGain);
+  }
+
+  private createVolcanicNight(ctx: AudioContext, out: GainNode) {
+    // Deeper, slower rumbling with glowing embers crackling
+    const osc1 = ctx.createOscillator();
+    osc1.type = "sawtooth";
+    osc1.frequency.value = 25;
+
+    const osc2 = ctx.createOscillator();
+    osc2.type = "sine";
+    osc2.frequency.value = 18;
+
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 100;
+    lp.Q.value = 3;
+
+    const lfo = ctx.createOscillator();
+    lfo.type = "sine";
+    lfo.frequency.value = 0.15;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 10;
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc1.frequency);
+    lfo.start();
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0.6;
+
+    osc1.connect(lp);
+    osc2.connect(lp);
+    lp.connect(gain);
+    gain.connect(out);
+    osc1.start();
+    osc2.start();
+
+    // More prominent crackling embers
+    const buffer = this.makeNoise(ctx);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = data[i] * (Math.random() > 0.95 ? 1 : 0.03);
+    }
+    const crackle = ctx.createBufferSource();
+    crackle.buffer = buffer;
+    crackle.loop = true;
+    const crackleGain = ctx.createGain();
+    crackleGain.gain.value = 0.2;
+    crackle.connect(crackleGain);
+    crackleGain.connect(out);
+    crackle.start();
+
+    this.nodes.push(osc1, osc2, lp, lfo, lfoGain, gain, crackle, crackleGain);
+  }
+
+  private createDesertNight(ctx: AudioContext, out: GainNode) {
+    // Cold desert wind + distant coyote-like howls (tonal sweeps)
+    const source = ctx.createBufferSource();
+    source.buffer = this.makeNoise(ctx);
+    source.loop = true;
+
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 300;
+    bp.Q.value = 0.4;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0.25;
+
+    source.connect(bp);
+    bp.connect(gain);
+    gain.connect(out);
+    source.start();
+
+    // Tonal sweep for distant howl effect
+    const howl = ctx.createOscillator();
+    howl.type = "sine";
+    howl.frequency.value = 600;
+    const howlLfo = ctx.createOscillator();
+    howlLfo.type = "sine";
+    howlLfo.frequency.value = 0.06;
+    const howlLfoGain = ctx.createGain();
+    howlLfoGain.gain.value = 200;
+    howlLfo.connect(howlLfoGain);
+    howlLfoGain.connect(howl.frequency);
+    howlLfo.start();
+    const howlGain = ctx.createGain();
+    howlGain.gain.value = 0.04;
+    howl.connect(howlGain);
+    howlGain.connect(out);
+    howl.start();
+
+    // Sparse cricket
+    const cricket = ctx.createOscillator();
+    cricket.type = "sine";
+    cricket.frequency.value = 5000;
+    const cricketAm = ctx.createOscillator();
+    cricketAm.type = "square";
+    cricketAm.frequency.value = 8;
+    const cricketAmGain = ctx.createGain();
+    cricketAmGain.gain.value = 0.3;
+    cricketAm.connect(cricketAmGain);
+    const cricketMod = ctx.createGain();
+    cricketMod.gain.value = 0;
+    cricketAmGain.connect(cricketMod.gain);
+    cricket.connect(cricketMod);
+    cricketMod.connect(out);
+    cricket.start();
+    cricketAm.start();
+
+    this.nodes.push(source, bp, gain, howl, howlLfo, howlLfoGain, howlGain, cricket, cricketAm, cricketAmGain, cricketMod);
+  }
+
+  private createTropicalNight(ctx: AudioContext, out: GainNode) {
+    // Dense chorus of frogs + crickets + occasional bird-like calls
+    // Frogs: lower frequency pulsing
+    const frogFreqs = [800, 1100, 950];
+    frogFreqs.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = f;
+
+      const am = ctx.createOscillator();
+      am.type = "square";
+      am.frequency.value = 2 + i * 1.5;
+      const amGain = ctx.createGain();
+      amGain.gain.value = 0.5;
+      am.connect(amGain);
+
+      const modGain = ctx.createGain();
+      modGain.gain.value = 0;
+      amGain.connect(modGain.gain);
+
+      osc.connect(modGain);
+      modGain.connect(out);
+      osc.start();
+      am.start();
+
+      this.nodes.push(osc, am, amGain, modGain);
+    });
+
+    // Louder crickets
+    const cricketFreqs = [5500, 4800, 6200];
+    cricketFreqs.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = f;
+
+      const am = ctx.createOscillator();
+      am.type = "square";
+      am.frequency.value = 14 + i * 4;
+      const amGain = ctx.createGain();
+      amGain.gain.value = 0.35;
+      am.connect(amGain);
+
+      const modGain = ctx.createGain();
+      modGain.gain.value = 0;
+      amGain.connect(modGain.gain);
+
+      osc.connect(modGain);
+      modGain.connect(out);
+      osc.start();
+      am.start();
+
+      this.nodes.push(osc, am, amGain, modGain);
+    });
+
+    // Warm background noise
+    const noise = ctx.createBufferSource();
+    noise.buffer = this.makeNoise(ctx);
+    noise.loop = true;
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 1200;
+    bp.Q.value = 0.2;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.value = 0.06;
+    noise.connect(bp);
+    bp.connect(noiseGain);
+    noiseGain.connect(out);
+    noise.start();
+
+    this.nodes.push(noise, bp, noiseGain);
+  }
+
   // --- Public API ---
 
-  play(biome: BiomeAudioType) {
-    if (this.activeBiome === biome && this.isPlaying) return;
+  play(biome: BiomeAudioType, isNight: boolean = false) {
+    if (this.activeBiome === biome && this.activeNight === isNight && this.isPlaying) return;
     this.stop();
     const ctx = this.getContext();
     const out = this.masterGain!;
 
-    switch (biome) {
-      case "arctic": this.createWind(ctx, out); break;
-      case "earth": this.createRain(ctx, out); break;
-      case "volcanic": this.createVolcanic(ctx, out); break;
-      case "desert": this.createDesertFire(ctx, out); break;
-      case "tropical": this.createTropicalInsects(ctx, out); break;
+    if (isNight) {
+      switch (biome) {
+        case "arctic": this.createHowlingWind(ctx, out); break;
+        case "earth": this.createNightCrickets(ctx, out); break;
+        case "volcanic": this.createVolcanicNight(ctx, out); break;
+        case "desert": this.createDesertNight(ctx, out); break;
+        case "tropical": this.createTropicalNight(ctx, out); break;
+      }
+    } else {
+      switch (biome) {
+        case "arctic": this.createWind(ctx, out); break;
+        case "earth": this.createRain(ctx, out); break;
+        case "volcanic": this.createVolcanic(ctx, out); break;
+        case "desert": this.createDesertFire(ctx, out); break;
+        case "tropical": this.createTropicalInsects(ctx, out); break;
+      }
     }
 
     this.activeBiome = biome;
+    this.activeNight = isNight;
     this.isPlaying = true;
   }
 
@@ -288,6 +567,7 @@ class AmbientAudioEngine {
     this.stopNodes();
     this.isPlaying = false;
     this.activeBiome = null;
+    this.activeNight = false;
   }
 
   setVolume(v: number) {
