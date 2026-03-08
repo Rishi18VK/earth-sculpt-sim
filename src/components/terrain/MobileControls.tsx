@@ -7,7 +7,7 @@ interface MobileControlsProps {
   onSprintChange?: (sprinting: boolean) => void;
 }
 
-export default function MobileControls({ visible, onInput }: MobileControlsProps) {
+export default function MobileControls({ visible, onInput, onJump, onSprintChange }: MobileControlsProps) {
   const joystickRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLDivElement>(null);
   const joystickTouchId = useRef<number | null>(null);
