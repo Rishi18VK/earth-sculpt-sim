@@ -50,6 +50,7 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
     if (!playMode) return;
     const onDown = (e: KeyboardEvent) => {
       keysRef.current.add(e.key.toLowerCase());
+      if (e.key === " ") e.preventDefault();
     };
     const onUp = (e: KeyboardEvent) => {
       keysRef.current.delete(e.key.toLowerCase());
