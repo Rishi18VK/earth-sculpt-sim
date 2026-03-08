@@ -6,6 +6,7 @@ import {
   updateLocalMod,
   extractModFromZip,
   createModFromFiles,
+  createModFromPreset,
   getActivePlayerOverrides,
 } from "@/lib/mod-loader";
 import type { InstalledMod, ModConfig, ModPlayerOverrides } from "@/lib/mod-types";
