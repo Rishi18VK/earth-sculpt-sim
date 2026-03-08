@@ -12,11 +12,14 @@ interface PlayerCharacterProps {
 }
 
 const MOVE_SPEED = 8;
+const SPRINT_SPEED = 14;
 const ROTATION_SPEED = 2.5;
 const CAMERA_DISTANCE = 8;
 const CAMERA_HEIGHT = 4;
 const CAMERA_LERP = 5;
 const TERRAIN_HALF = 38;
+const GRAVITY = -25;
+const JUMP_FORCE = 10;
 
 export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdate, mobileInput }: PlayerCharacterProps) {
   const groupRef = useRef<THREE.Group>(null);
@@ -27,6 +30,8 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
   const mouseDownRef = useRef(false);
   const lastMouseRef = useRef({ x: 0, y: 0 });
   const walkPhaseRef = useRef(0);
+  const velocityYRef = useRef(0);
+  const isGroundedRef = useRef(true);
   const { camera, gl } = useThree();
 
   // Spawn position
@@ -45,6 +50,7 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
     if (!playMode) return;
     const onDown = (e: KeyboardEvent) => {
       keysRef.current.add(e.key.toLowerCase());
+      if (e.key === " ") e.preventDefault();
     };
     const onUp = (e: KeyboardEvent) => {
       keysRef.current.delete(e.key.toLowerCase());
@@ -100,14 +106,24 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
     if (!playMode || !groupRef.current) return;
     const dt = Math.min(delta, 0.05);
     const pos = posRef.current;
+    const keys = keysRef.current;
+
+    // Sprint check
+    const isSprinting = keys.has("shift");
+    const speed = isSprinting ? SPRINT_SPEED : MOVE_SPEED;
 
     // Movement input
     let moveX = 0, moveZ = 0;
-    const keys = keysRef.current;
     if (keys.has("w") || keys.has("arrowup")) moveZ -= 1;
     if (keys.has("s") || keys.has("arrowdown")) moveZ += 1;
     if (keys.has("a") || keys.has("arrowleft")) moveX -= 1;
     if (keys.has("d") || keys.has("arrowright")) moveX += 1;
+
+    // Jump
+    if (keys.has(" ") && isGroundedRef.current) {
+      velocityYRef.current = JUMP_FORCE;
+      isGroundedRef.current = false;
+    }
 
     // Mobile joystick input
     if (mobileInput) {
@@ -129,21 +145,27 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
       const worldX = nx * Math.cos(angle) - nz * Math.sin(angle);
       const worldZ = nx * Math.sin(angle) + nz * Math.cos(angle);
 
-      const newX = Math.max(-TERRAIN_HALF, Math.min(TERRAIN_HALF, pos.x + worldX * MOVE_SPEED * dt));
-      const newZ = Math.max(-TERRAIN_HALF, Math.min(TERRAIN_HALF, pos.z + worldZ * MOVE_SPEED * dt));
-
-      const terrainH = biomeNoise(newX, newZ, biome, seed);
-      const targetY = Math.max(terrainH, biome.waterLevel + 0.3);
-
-      pos.x = newX;
-      pos.z = newZ;
-      pos.y += (targetY - pos.y) * Math.min(dt * 10, 1);
+      pos.x = Math.max(-TERRAIN_HALF, Math.min(TERRAIN_HALF, pos.x + worldX * speed * dt));
+      pos.z = Math.max(-TERRAIN_HALF, Math.min(TERRAIN_HALF, pos.z + worldZ * speed * dt));
 
       // Face movement direction
       facingRef.current = Math.atan2(worldX, worldZ);
 
-      // Walk animation phase
-      walkPhaseRef.current += dt * 10;
+      // Walk animation phase (faster when sprinting)
+      walkPhaseRef.current += dt * (isSprinting ? 16 : 10);
+    }
+
+    // Gravity & terrain collision
+    const terrainH = biomeNoise(pos.x, pos.z, biome, seed);
+    const groundY = Math.max(terrainH, biome.waterLevel + 0.3);
+
+    velocityYRef.current += GRAVITY * dt;
+    pos.y += velocityYRef.current * dt;
+
+    if (pos.y <= groundY) {
+      pos.y = groundY;
+      velocityYRef.current = 0;
+      isGroundedRef.current = true;
     }
 
     // Update group position

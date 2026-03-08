@@ -3,9 +3,11 @@ import { useRef, useCallback, useEffect, useState } from "react";
 interface MobileControlsProps {
   visible: boolean;
   onInput: (input: { moveX: number; moveZ: number; cameraX: number; cameraY: number }) => void;
+  onJump?: () => void;
+  onSprintChange?: (sprinting: boolean) => void;
 }
 
-export default function MobileControls({ visible, onInput }: MobileControlsProps) {
+export default function MobileControls({ visible, onInput, onJump, onSprintChange }: MobileControlsProps) {
   const joystickRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLDivElement>(null);
   const joystickTouchId = useRef<number | null>(null);
@@ -125,8 +127,21 @@ export default function MobileControls({ visible, onInput }: MobileControlsProps
         </div>
       </div>
 
-      {/* Zoom buttons */}
+      {/* Jump & Sprint buttons */}
       <div className="absolute bottom-20 right-8 flex flex-col gap-2 pointer-events-auto">
+        <button
+          className="w-14 h-14 rounded-full bg-primary/60 backdrop-blur-sm border-2 border-primary text-primary-foreground font-bold text-xs shadow-lg active:scale-95"
+          onTouchStart={() => onJump?.()}
+        >
+          JUMP
+        </button>
+        <button
+          className="w-14 h-14 rounded-full bg-card/60 backdrop-blur-sm border border-border/40 text-foreground font-bold text-xs active:scale-95"
+          onTouchStart={() => onSprintChange?.(true)}
+          onTouchEnd={() => onSprintChange?.(false)}
+        >
+          SPRINT
+        </button>
         <button
           className="w-10 h-10 rounded-full bg-card/60 backdrop-blur-sm border border-border/40 text-foreground font-bold text-lg"
           onTouchStart={() => { window.dispatchEvent(new WheelEvent("wheel", { deltaY: -50 })); }}
