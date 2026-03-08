@@ -1,7 +1,8 @@
 import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { BiomeConfig, biomeNoise, biomeColor } from "@/lib/biomes";
+import { BiomeConfig, biomeNoise, biomeColor, biomeTerrainType } from "@/lib/biomes";
+import type { ModTerrainColorOverrides } from "@/lib/mod-types";
 import type { ModTerrainColorOverrides } from "@/lib/mod-types";
 
 interface TerrainMeshProps {
