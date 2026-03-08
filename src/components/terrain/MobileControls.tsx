@@ -3,6 +3,8 @@ import { useRef, useCallback, useEffect, useState } from "react";
 interface MobileControlsProps {
   visible: boolean;
   onInput: (input: { moveX: number; moveZ: number; cameraX: number; cameraY: number }) => void;
+  onJump?: () => void;
+  onSprintChange?: (sprinting: boolean) => void;
 }
 
 export default function MobileControls({ visible, onInput }: MobileControlsProps) {
