@@ -109,7 +109,21 @@ const Index = () => {
       </div>
 
       {/* Mobile Controls */}
-      <MobileControls visible={playMode} onInput={setMobileInput} />
+      <MobileControls
+        visible={playMode}
+        onInput={setMobileInput}
+        onJump={() => {
+          window.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
+          setTimeout(() => window.dispatchEvent(new KeyboardEvent("keyup", { key: " " })), 100);
+        }}
+        onSprintChange={(sprinting) => {
+          if (sprinting) {
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: "Shift" }));
+          } else {
+            window.dispatchEvent(new KeyboardEvent("keyup", { key: "Shift" }));
+          }
+        }}
+      />
 
       {/* Top Bar */}
       <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between pointer-events-none">
