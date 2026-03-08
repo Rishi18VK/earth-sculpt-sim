@@ -12,11 +12,14 @@ interface PlayerCharacterProps {
 }
 
 const MOVE_SPEED = 8;
+const SPRINT_SPEED = 14;
 const ROTATION_SPEED = 2.5;
 const CAMERA_DISTANCE = 8;
 const CAMERA_HEIGHT = 4;
 const CAMERA_LERP = 5;
 const TERRAIN_HALF = 38;
+const GRAVITY = -25;
+const JUMP_FORCE = 10;
 
 export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdate, mobileInput }: PlayerCharacterProps) {
   const groupRef = useRef<THREE.Group>(null);
