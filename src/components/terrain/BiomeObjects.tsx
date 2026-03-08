@@ -1,19 +1,19 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { BiomeConfig, BiomeId, biomeNoise } from "@/lib/biomes";
+import type { ModBiomeEffectOverrides } from "@/lib/mod-types";
 
 interface BiomeObjectsProps {
   biome: BiomeConfig;
   seed?: number;
+  effectOverrides?: ModBiomeEffectOverrides | null;
 }
 
-// Deterministic pseudo-random from seed
 function seededRandom(seed: number) {
   const x = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
   return x - Math.floor(x);
 }
 
-// Simple tree (cone + cylinder)
 function PineTree({ position, scale = 1 }: { position: [number, number, number]; scale?: number }) {
   return (
     <group position={position} scale={scale}>
@@ -36,12 +36,10 @@ function PineTree({ position, scale = 1 }: { position: [number, number, number];
 function PalmTree({ position, scale = 1 }: { position: [number, number, number]; scale?: number }) {
   return (
     <group position={position} scale={scale}>
-      {/* Trunk - slight curve */}
       <mesh position={[0, 1, 0]} castShadow>
         <cylinderGeometry args={[0.08, 0.12, 2.2, 6]} />
         <meshStandardMaterial color="#8a6a3a" roughness={1} />
       </mesh>
-      {/* Fronds */}
       {[0, 1.2, 2.4, 3.6, 4.8].map((r, i) => (
         <mesh key={i} position={[Math.cos(r) * 0.4, 2.1, Math.sin(r) * 0.4]} rotation={[0.6 * Math.cos(r), r, 0.6 * Math.sin(r)]} castShadow>
           <boxGeometry args={[0.1, 0.02, 0.8]} />
@@ -125,14 +123,18 @@ const biomeObjects: Record<BiomeId, { types: ObjectType[]; count: number; minHei
   tropical: { types: ["palmTree", "rock"], count: 50, minHeight: 0.3, maxHeight: 2.0, rockColor: "#6a8a6a" },
 };
 
-export default function BiomeObjects({ biome, seed = 0 }: BiomeObjectsProps) {
+export default function BiomeObjects({ biome, seed = 0, effectOverrides }: BiomeObjectsProps) {
+  const densityMult = effectOverrides?.objectDensityMultiplier ?? 1;
+  const scaleMult = effectOverrides?.objectScaleMultiplier ?? 1;
+
   const objects = useMemo(() => {
     const config = biomeObjects[biome.id];
     const placed: PlacedObject[] = [];
     const halfSize = 35;
     const seedOffset = seed * 50;
+    const count = Math.round(config.count * densityMult);
 
-    for (let i = 0; i < config.count; i++) {
+    for (let i = 0; i < count; i++) {
       const x = seededRandom(i * 3 + 0.1 + seedOffset) * halfSize * 2 - halfSize;
       const z = seededRandom(i * 3 + 1.1 + seedOffset) * halfSize * 2 - halfSize;
       const height = biomeNoise(x, z, biome, seed);
@@ -141,7 +143,7 @@ export default function BiomeObjects({ biome, seed = 0 }: BiomeObjectsProps) {
 
       const typeIdx = Math.floor(seededRandom(i * 7 + 2.3 + seedOffset) * config.types.length);
       const type = config.types[typeIdx];
-      const scale = 0.6 + seededRandom(i * 11 + 3.7 + seedOffset) * 0.8;
+      const scale = (0.6 + seededRandom(i * 11 + 3.7 + seedOffset) * 0.8) * scaleMult;
 
       placed.push({
         type,
@@ -151,7 +153,11 @@ export default function BiomeObjects({ biome, seed = 0 }: BiomeObjectsProps) {
       });
     }
     return placed;
-  }, [biome, seed]);
+  }, [biome, seed, densityMult, scaleMult]);
+
+  const glowEnabled = effectOverrides?.glowEnabled;
+  const glowColor = effectOverrides?.glowColor || "#4488ff";
+  const glowIntensity = effectOverrides?.glowIntensity || 0.3;
 
   return (
     <group>
@@ -166,6 +172,9 @@ export default function BiomeObjects({ biome, seed = 0 }: BiomeObjectsProps) {
           default: return null;
         }
       })}
+      {glowEnabled && (
+        <pointLight position={[0, 10, 0]} color={glowColor} intensity={glowIntensity} distance={80} />
+      )}
     </group>
   );
 }

@@ -1,10 +1,21 @@
 import JSZip from "jszip";
 import { get, set, del, keys, entries } from "idb-keyval";
-import type { ModConfig, InstalledMod } from "./mod-types";
+import type {
+  ModConfig,
+  InstalledMod,
+  ModPlayerOverrides,
+  ModWeatherOverrides,
+  ModTerrainColorOverrides,
+  ModBiomeEffectOverrides,
+  ModCameraOverrides,
+  ModType,
+} from "./mod-types";
 
 const MOD_STORE_PREFIX = "terracraft_mod_";
 const MOD_LIST_KEY = "terracraft_mod_list";
 const MOD_BLOB_PREFIX = "terracraft_mod_blob_";
+
+const VALID_MOD_TYPES: ModType[] = ["player", "weather", "terrain_color", "biome_effect", "camera"];
 
 // ---- IndexedDB Local Storage ----
 
@@ -22,12 +33,11 @@ export async function loadLocalMods(): Promise<InstalledMod[]> {
   for (const id of ids) {
     const mod = await get<InstalledMod>(`${MOD_STORE_PREFIX}${id}`);
     if (mod) {
-      // Recreate blob URL from stored blob data
       const blobData = await get<Blob>(`${MOD_BLOB_PREFIX}${id}`);
       if (blobData) {
         mod.modelUrl = URL.createObjectURL(blobData);
       } else {
-        mod.modelUrl = undefined; // Clear stale blob URLs
+        mod.modelUrl = undefined;
       }
       mods.push(mod);
     }
@@ -36,7 +46,6 @@ export async function loadLocalMods(): Promise<InstalledMod[]> {
 }
 
 export async function saveLocalMod(mod: InstalledMod, modelBlob?: Blob): Promise<void> {
-  // Store mod metadata without the blob URL (it's transient)
   const modToStore = { ...mod, modelUrl: modelBlob ? "has_blob" : undefined };
   await set(`${MOD_STORE_PREFIX}${mod.id}`, modToStore);
   if (modelBlob) {
@@ -95,8 +104,8 @@ export async function extractModFromZip(file: File): Promise<{ mod: InstalledMod
     throw new Error("Invalid mod.json: Missing required 'name' or 'type' field.");
   }
 
-  if (config.type !== "player") {
-    throw new Error(`Unsupported mod type: "${config.type}". Only "player" mods are supported.`);
+  if (!VALID_MOD_TYPES.includes(config.type)) {
+    throw new Error(`Unsupported mod type: "${config.type}". Supported types: ${VALID_MOD_TYPES.join(", ")}`);
   }
 
   let modelBlob: Blob | undefined;
@@ -151,8 +160,12 @@ export async function createModFromFiles(
       version: manualConfig.version || "1.0.0",
       author: manualConfig.author || "Unknown",
       description: manualConfig.description || "",
-      type: "player",
+      type: manualConfig.type || "player",
       player: manualConfig.player,
+      weather: manualConfig.weather,
+      terrainColor: manualConfig.terrainColor,
+      biomeEffect: manualConfig.biomeEffect,
+      camera: manualConfig.camera,
     };
   } else {
     throw new Error("Either a config file or manual configuration is required.");
@@ -191,12 +204,11 @@ export function createModFromPreset(config: ModConfig): InstalledMod {
   };
 }
 
-// ---- Get active player mod overrides ----
+// ---- Get active overrides by type ----
 
-export function getActivePlayerOverrides(mods: InstalledMod[]) {
+export function getActivePlayerOverrides(mods: InstalledMod[]): ModPlayerOverrides | null {
   const activeMod = mods.find((m) => m.enabled && m.config.type === "player");
   if (!activeMod) return null;
-
   return {
     speed: activeMod.config.player?.speed,
     sprintSpeed: activeMod.config.player?.sprintSpeed,
@@ -208,4 +220,28 @@ export function getActivePlayerOverrides(mods: InstalledMod[]) {
     modelUrl: activeMod.modelUrl,
     modName: activeMod.config.name,
   };
+}
+
+export function getActiveWeatherOverrides(mods: InstalledMod[]): ModWeatherOverrides | null {
+  const activeMod = mods.find((m) => m.enabled && m.config.type === "weather");
+  if (!activeMod || !activeMod.config.weather) return null;
+  return { ...activeMod.config.weather, modName: activeMod.config.name };
+}
+
+export function getActiveTerrainColorOverrides(mods: InstalledMod[]): ModTerrainColorOverrides | null {
+  const activeMod = mods.find((m) => m.enabled && m.config.type === "terrain_color");
+  if (!activeMod || !activeMod.config.terrainColor) return null;
+  return { ...activeMod.config.terrainColor, modName: activeMod.config.name };
+}
+
+export function getActiveBiomeEffectOverrides(mods: InstalledMod[]): ModBiomeEffectOverrides | null {
+  const activeMod = mods.find((m) => m.enabled && m.config.type === "biome_effect");
+  if (!activeMod || !activeMod.config.biomeEffect) return null;
+  return { ...activeMod.config.biomeEffect, modName: activeMod.config.name };
+}
+
+export function getActiveCameraOverrides(mods: InstalledMod[]): ModCameraOverrides | null {
+  const activeMod = mods.find((m) => m.enabled && m.config.type === "camera");
+  if (!activeMod || !activeMod.config.camera) return null;
+  return { ...activeMod.config.camera, modName: activeMod.config.name };
 }

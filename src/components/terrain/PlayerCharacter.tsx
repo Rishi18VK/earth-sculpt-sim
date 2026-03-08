@@ -3,7 +3,7 @@ import { useFrame, useThree, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
 import { BiomeConfig, biomeNoise } from "@/lib/biomes";
-import type { ModPlayerOverrides } from "@/lib/mod-types";
+import type { ModPlayerOverrides, ModCameraOverrides } from "@/lib/mod-types";
 
 interface PlayerCharacterProps {
   biome: BiomeConfig;
@@ -12,6 +12,7 @@ interface PlayerCharacterProps {
   onPositionUpdate?: (pos: [number, number, number]) => void;
   mobileInput?: { moveX: number; moveZ: number; cameraX: number; cameraY: number };
   modOverrides?: ModPlayerOverrides | null;
+  cameraOverrides?: ModCameraOverrides | null;
 }
 
 const MOVE_SPEED = 8;
@@ -24,11 +25,11 @@ const TERRAIN_HALF = 38;
 const GRAVITY = -25;
 const JUMP_FORCE = 10;
 
-export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdate, mobileInput, modOverrides }: PlayerCharacterProps) {
+export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdate, mobileInput, modOverrides, cameraOverrides }: PlayerCharacterProps) {
   const groupRef = useRef<THREE.Group>(null);
   const cameraAngleRef = useRef(0);
   const cameraPitchRef = useRef(0.3);
-  const cameraDistRef = useRef(modOverrides?.cameraDistance ?? CAMERA_DISTANCE);
+  const cameraDistRef = useRef(cameraOverrides?.distance ?? modOverrides?.cameraDistance ?? CAMERA_DISTANCE);
   const keysRef = useRef<Set<string>>(new Set());
   const mouseDownRef = useRef(false);
   const lastMouseRef = useRef({ x: 0, y: 0 });
@@ -196,18 +197,43 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
       if (rightArm) rightArm.rotation.x *= 0.9;
     }
 
-    // Third-person camera
-    const dist = cameraDistRef.current;
+    // Camera - apply camera mod overrides
+    const isFirstPerson = cameraOverrides?.firstPerson ?? false;
+    const dist = isFirstPerson ? 0.1 : cameraDistRef.current;
     const pitch = cameraPitchRef.current;
     const camAngle = cameraAngleRef.current;
-    const camTargetX = pos.x + Math.sin(camAngle) * Math.cos(pitch) * dist;
-    const camTargetZ = pos.z + Math.cos(camAngle) * Math.cos(pitch) * dist;
-    const camTargetY = pos.y + (modOverrides?.cameraHeight ?? CAMERA_HEIGHT) + Math.sin(pitch) * dist * 0.5;
+    const camHeight = cameraOverrides?.height ?? modOverrides?.cameraHeight ?? CAMERA_HEIGHT;
+    const camLerp = cameraOverrides?.lerpSpeed ?? CAMERA_LERP;
 
-    camera.position.x += (camTargetX - camera.position.x) * Math.min(dt * CAMERA_LERP, 1);
-    camera.position.y += (camTargetY - camera.position.y) * Math.min(dt * CAMERA_LERP, 1);
-    camera.position.z += (camTargetZ - camera.position.z) * Math.min(dt * CAMERA_LERP, 1);
-    camera.lookAt(pos.x, pos.y + 1, pos.z);
+    // Auto-rotate camera if enabled
+    if (cameraOverrides?.autoRotate && !isMoving) {
+      cameraAngleRef.current += dt * (cameraOverrides.autoRotateSpeed ?? 0.5);
+    }
+
+    if (isFirstPerson) {
+      // First person: camera at head height looking forward
+      const fpX = pos.x - Math.sin(facingRef.current) * 0.3;
+      const fpZ = pos.z - Math.cos(facingRef.current) * 0.3;
+      const fpY = pos.y + 1.5 * (modOverrides?.scale ?? 1);
+      camera.position.x += (fpX - camera.position.x) * Math.min(dt * camLerp * 2, 1);
+      camera.position.y += (fpY - camera.position.y) * Math.min(dt * camLerp * 2, 1);
+      camera.position.z += (fpZ - camera.position.z) * Math.min(dt * camLerp * 2, 1);
+      const lookDist = 5;
+      camera.lookAt(
+        pos.x - Math.sin(facingRef.current) * lookDist,
+        pos.y + 1.2,
+        pos.z - Math.cos(facingRef.current) * lookDist
+      );
+    } else {
+      const camTargetX = pos.x + Math.sin(camAngle) * Math.cos(pitch) * dist;
+      const camTargetZ = pos.z + Math.cos(camAngle) * Math.cos(pitch) * dist;
+      const camTargetY = pos.y + camHeight + Math.sin(pitch) * dist * 0.5;
+
+      camera.position.x += (camTargetX - camera.position.x) * Math.min(dt * camLerp, 1);
+      camera.position.y += (camTargetY - camera.position.y) * Math.min(dt * camLerp, 1);
+      camera.position.z += (camTargetZ - camera.position.z) * Math.min(dt * camLerp, 1);
+      camera.lookAt(pos.x, pos.y + 1, pos.z);
+    }
 
     onPositionUpdate?.([
       Math.round(pos.x * 10) / 10,

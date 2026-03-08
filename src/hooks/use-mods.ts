@@ -8,15 +8,18 @@ import {
   createModFromFiles,
   createModFromPreset,
   getActivePlayerOverrides,
+  getActiveWeatherOverrides,
+  getActiveTerrainColorOverrides,
+  getActiveBiomeEffectOverrides,
+  getActiveCameraOverrides,
 } from "@/lib/mod-loader";
-import type { InstalledMod, ModConfig, ModPlayerOverrides } from "@/lib/mod-types";
+import type { InstalledMod, ModConfig, ModType } from "@/lib/mod-types";
 
 export function useMods() {
   const [mods, setMods] = useState<InstalledMod[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load mods on mount
   useEffect(() => {
     loadLocalMods()
       .then(setMods)
@@ -58,26 +61,25 @@ export function useMods() {
       const mod = prev.find((m) => m.id === id);
       if (!mod) return prev;
 
-      // If enabling a player mod, disable other player mods
-      if (!mod.enabled && mod.config.type === "player") {
+      // If enabling, disable other mods of the same type
+      if (!mod.enabled) {
         return prev.map((m) => ({
           ...m,
-          enabled: m.id === id ? true : m.config.type === "player" ? false : m.enabled,
+          enabled: m.id === id ? true : m.config.type === mod.config.type ? false : m.enabled,
         }));
       }
 
       return prev.map((m) => (m.id === id ? { ...m, enabled: !m.enabled } : m));
     });
 
-    // Persist toggle
+    // Persist
     const currentMods = await loadLocalMods();
     const mod = currentMods.find((m) => m.id === id);
     if (mod) {
       await updateLocalMod(id, { enabled: !mod.enabled });
-      // Disable other player mods if enabling this one
-      if (!mod.enabled && mod.config.type === "player") {
+      if (!mod.enabled) {
         for (const m of currentMods) {
-          if (m.id !== id && m.config.type === "player" && m.enabled) {
+          if (m.id !== id && m.config.type === mod.config.type && m.enabled) {
             await updateLocalMod(m.id, { enabled: false });
           }
         }
@@ -104,6 +106,10 @@ export function useMods() {
   }, []);
 
   const playerOverrides = getActivePlayerOverrides(mods);
+  const weatherOverrides = getActiveWeatherOverrides(mods);
+  const terrainColorOverrides = getActiveTerrainColorOverrides(mods);
+  const biomeEffectOverrides = getActiveBiomeEffectOverrides(mods);
+  const cameraOverrides = getActiveCameraOverrides(mods);
 
   return {
     mods,
@@ -115,6 +121,10 @@ export function useMods() {
     toggleMod,
     removeMod,
     playerOverrides,
+    weatherOverrides,
+    terrainColorOverrides,
+    biomeEffectOverrides,
+    cameraOverrides,
     clearError: () => setError(null),
   };
 }

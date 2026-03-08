@@ -12,7 +12,7 @@ import { Suspense, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { BiomeConfig } from "@/lib/biomes";
-import type { ModPlayerOverrides } from "@/lib/mod-types";
+import type { ModPlayerOverrides, ModWeatherOverrides, ModTerrainColorOverrides, ModBiomeEffectOverrides, ModCameraOverrides } from "@/lib/mod-types";
 
 interface MeasurementPoint {
   position: [number, number, number];
@@ -32,6 +32,10 @@ interface Scene3DProps {
   onCollect?: (collected: number, total: number) => void;
   mobileInput?: { moveX: number; moveZ: number; cameraX: number; cameraY: number };
   modOverrides?: ModPlayerOverrides | null;
+  weatherOverrides?: ModWeatherOverrides | null;
+  terrainColorOverrides?: ModTerrainColorOverrides | null;
+  biomeEffectOverrides?: ModBiomeEffectOverrides | null;
+  cameraOverrides?: ModCameraOverrides | null;
 }
 
 function lerp(a: number, b: number, t: number) {
@@ -52,7 +56,7 @@ function darkenColor(hex: string, factor: number): string {
   return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }
 
-function AnimatedLights({ biome, isNight }: { biome: BiomeConfig; isNight: boolean }) {
+function AnimatedLights({ biome, isNight, ambientMultiplier }: { biome: BiomeConfig; isNight: boolean; ambientMultiplier: number }) {
   const ambientRef = useRef<THREE.AmbientLight>(null);
   const dirRef = useRef<THREE.DirectionalLight>(null);
   const pointRef = useRef<THREE.PointLight>(null);
@@ -64,7 +68,6 @@ function AnimatedLights({ biome, isNight }: { biome: BiomeConfig; isNight: boole
   const nightDirColor = new THREE.Color("#8899cc");
   const dayPointColor = new THREE.Color("#88ccff");
   const nightPointColor = new THREE.Color("#6688bb");
-  const tmpColor = new THREE.Color();
   const dayDirPos = new THREE.Vector3(20, 30, 10);
   const nightDirPos = new THREE.Vector3(-20, 20, -10);
 
@@ -74,7 +77,7 @@ function AnimatedLights({ biome, isNight }: { biome: BiomeConfig; isNight: boole
     const t = tRef.current;
 
     if (ambientRef.current) {
-      ambientRef.current.intensity = lerp(biome.ambientIntensity, biome.ambientIntensity * 0.15, t);
+      ambientRef.current.intensity = lerp(biome.ambientIntensity * ambientMultiplier, biome.ambientIntensity * 0.15 * ambientMultiplier, t);
       lerpColor(dayAmbientColor, nightAmbientColor, t, ambientRef.current.color);
     }
     if (dirRef.current) {
@@ -90,7 +93,7 @@ function AnimatedLights({ biome, isNight }: { biome: BiomeConfig; isNight: boole
 
   return (
     <>
-      <ambientLight ref={ambientRef} intensity={biome.ambientIntensity} />
+      <ambientLight ref={ambientRef} intensity={biome.ambientIntensity * ambientMultiplier} />
       <directionalLight
         ref={dirRef}
         position={[20, 30, 10]}
@@ -110,27 +113,27 @@ function AnimatedLights({ biome, isNight }: { biome: BiomeConfig; isNight: boole
   );
 }
 
-function AnimatedFog({ biome, isNight }: { biome: BiomeConfig; isNight: boolean }) {
+function AnimatedFog({ biome, isNight, fogColorOverride }: { biome: BiomeConfig; isNight: boolean; fogColorOverride?: string }) {
   const fogRef = useRef<THREE.Fog>(null);
   const tRef = useRef(isNight ? 1 : 0);
-  const dayColor = new THREE.Color(biome.fogColor);
-  const nightColor = new THREE.Color(darkenColor(biome.fogColor, 0.15));
-  const tmpColor = new THREE.Color();
+  const baseFogColor = fogColorOverride || biome.fogColor;
+  const dayColor = new THREE.Color(baseFogColor);
+  const nightColor = new THREE.Color(darkenColor(baseFogColor, 0.15));
 
   useFrame((_, delta) => {
     const target = isNight ? 1 : 0;
     tRef.current += (target - tRef.current) * Math.min(delta * 2, 0.08);
     const t = tRef.current;
     if (fogRef.current) {
-      dayColor.set(biome.fogColor);
-      nightColor.set(darkenColor(biome.fogColor, 0.15));
+      dayColor.set(baseFogColor);
+      nightColor.set(darkenColor(baseFogColor, 0.15));
       lerpColor(dayColor, nightColor, t, fogRef.current.color);
       fogRef.current.near = lerp(biome.fogNear, biome.fogNear * 0.6, t);
       fogRef.current.far = lerp(biome.fogFar, biome.fogFar * 0.7, t);
     }
   });
 
-  return <fog ref={fogRef} attach="fog" args={[biome.fogColor, biome.fogNear, biome.fogFar]} />;
+  return <fog ref={fogRef} attach="fog" args={[baseFogColor, biome.fogNear, biome.fogFar]} />;
 }
 
 function AnimatedBackground({ isNight }: { isNight: boolean }) {
@@ -159,7 +162,6 @@ function AnimatedSky({ biome, isNight }: { biome: BiomeConfig; isNight: boolean 
     tRef.current += (target - tRef.current) * Math.min(delta * 2, 0.08);
     if (ref.current) {
       const t = tRef.current;
-      // Fade sun below horizon for night
       const sunY = lerp(biome.sunPosition[1], -50, t);
       ref.current.material.uniforms.sunPosition.value.set(biome.sunPosition[0], sunY, biome.sunPosition[2]);
     }
@@ -194,13 +196,21 @@ function AnimatedStars({ isNight }: { isNight: boolean }) {
   );
 }
 
-export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0, isNight = false, playMode = false, onPlayerPositionUpdate, onCollect, mobileInput, modOverrides }: Scene3DProps) {
+export default function Scene3D({
+  onPointClick, pointA, pointB, biome, seed = 0, isNight = false, playMode = false,
+  onPlayerPositionUpdate, onCollect, mobileInput, modOverrides,
+  weatherOverrides, terrainColorOverrides, biomeEffectOverrides, cameraOverrides,
+}: Scene3DProps) {
   const [playerPos, setPlayerPos] = useState<[number, number, number] | null>(null);
 
   const handlePlayerPosition = useCallback((pos: [number, number, number]) => {
     setPlayerPos(pos);
     onPlayerPositionUpdate?.(pos);
   }, [onPlayerPositionUpdate]);
+
+  const ambientMultiplier = biomeEffectOverrides?.ambientIntensityMultiplier ?? 1;
+  const fogColorOverride = terrainColorOverrides?.fogColor;
+  const cameraFov = cameraOverrides?.fov || 60;
 
   return (
     <Canvas
@@ -209,18 +219,18 @@ export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0,
       dpr={[1, 2]}
       style={{ width: "100%", height: "100%" }}
     >
-      <PerspectiveCamera makeDefault position={[25, 20, 25]} fov={60} near={0.1} far={500} />
+      <PerspectiveCamera makeDefault position={[25, 20, 25]} fov={cameraFov} near={0.1} far={500} />
       <AnimatedBackground isNight={isNight} />
 
       <Suspense fallback={null}>
-        <AnimatedLights biome={biome} isNight={isNight} />
+        <AnimatedLights biome={biome} isNight={isNight} ambientMultiplier={ambientMultiplier} />
         <AnimatedSky biome={biome} isNight={isNight} />
         <AnimatedStars isNight={isNight} />
-        <AnimatedFog biome={biome} isNight={isNight} />
-        <TerrainMesh onPointClick={onPointClick} biome={biome} seed={seed} />
-        <BiomeObjects biome={biome} seed={seed} />
-        <WeatherEffects biome={biome} />
-        <PlayerCharacter biome={biome} seed={seed} playMode={playMode} onPositionUpdate={handlePlayerPosition} mobileInput={mobileInput} modOverrides={modOverrides} />
+        <AnimatedFog biome={biome} isNight={isNight} fogColorOverride={fogColorOverride} />
+        <TerrainMesh onPointClick={onPointClick} biome={biome} seed={seed} colorOverrides={terrainColorOverrides} />
+        <BiomeObjects biome={biome} seed={seed} effectOverrides={biomeEffectOverrides} />
+        <WeatherEffects biome={biome} modOverrides={weatherOverrides} />
+        <PlayerCharacter biome={biome} seed={seed} playMode={playMode} onPositionUpdate={handlePlayerPosition} mobileInput={mobileInput} modOverrides={modOverrides} cameraOverrides={cameraOverrides} />
         <Collectibles biome={biome} seed={seed} playerPosition={playerPos} playMode={playMode} onCollect={onCollect} />
         <MeasurementMarkers pointA={pointA || null} pointB={pointB || null} />
         <MiniMap biome={biome} seed={seed} playerPosition={playMode ? playerPos : null} />
