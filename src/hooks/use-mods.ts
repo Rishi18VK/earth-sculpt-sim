@@ -40,8 +40,8 @@ export function useMods() {
     async (configFile: File | null, modelFile: File | null, manualConfig?: Partial<ModConfig>) => {
       setError(null);
       try {
-        const mod = await createModFromFiles(configFile, modelFile, manualConfig);
-        await saveLocalMod(mod);
+        const { mod, modelBlob } = await createModFromFiles(configFile, modelFile, manualConfig);
+        await saveLocalMod(mod, modelBlob);
         setMods((prev) => [...prev, mod]);
         return mod;
       } catch (e: any) {
