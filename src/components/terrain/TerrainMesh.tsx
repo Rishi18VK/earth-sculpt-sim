@@ -3,7 +3,6 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { BiomeConfig, biomeNoise, biomeColor, biomeTerrainType } from "@/lib/biomes";
 import type { ModTerrainColorOverrides } from "@/lib/mod-types";
-import type { ModTerrainColorOverrides } from "@/lib/mod-types";
 
 interface TerrainMeshProps {
   onPointClick?: (info: { type: string; height: number; position: [number, number, number] }) => void;
