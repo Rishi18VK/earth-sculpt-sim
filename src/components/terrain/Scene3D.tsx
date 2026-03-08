@@ -5,6 +5,7 @@ import MeasurementMarkers from "./MeasurementMarkers";
 import MiniMap from "./MiniMap";
 import BiomeObjects from "./BiomeObjects";
 import WeatherEffects from "./WeatherEffects";
+import PlayerCharacter from "./PlayerCharacter";
 import { Suspense, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -23,6 +24,9 @@ interface Scene3DProps {
   biome: BiomeConfig;
   seed?: number;
   isNight?: boolean;
+  playMode?: boolean;
+  onPlayerPositionUpdate?: (pos: [number, number, number]) => void;
+  mobileInput?: { moveX: number; moveZ: number; cameraX: number; cameraY: number };
 }
 
 function lerp(a: number, b: number, t: number) {
@@ -185,7 +189,7 @@ function AnimatedStars({ isNight }: { isNight: boolean }) {
   );
 }
 
-export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0, isNight = false }: Scene3DProps) {
+export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0, isNight = false, playMode = false, onPlayerPositionUpdate, mobileInput }: Scene3DProps) {
   return (
     <Canvas
       shadows
@@ -204,20 +208,23 @@ export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0,
         <TerrainMesh onPointClick={onPointClick} biome={biome} seed={seed} />
         <BiomeObjects biome={biome} seed={seed} />
         <WeatherEffects biome={biome} />
+        <PlayerCharacter biome={biome} seed={seed} playMode={playMode} onPositionUpdate={onPlayerPositionUpdate} mobileInput={mobileInput} />
         <MeasurementMarkers pointA={pointA || null} pointB={pointB || null} />
         <MiniMap biome={biome} seed={seed} />
       </Suspense>
 
-      <OrbitControls
-        enablePan
-        enableZoom
-        enableRotate
-        minDistance={5}
-        maxDistance={80}
-        maxPolarAngle={Math.PI / 2.1}
-        autoRotate
-        autoRotateSpeed={0.3}
-      />
+      {!playMode && (
+        <OrbitControls
+          enablePan
+          enableZoom
+          enableRotate
+          minDistance={5}
+          maxDistance={80}
+          maxPolarAngle={Math.PI / 2.1}
+          autoRotate
+          autoRotateSpeed={0.3}
+        />
+      )}
     </Canvas>
   );
 }
