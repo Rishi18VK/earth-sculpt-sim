@@ -7,9 +7,10 @@ import { BiomeConfig, biomeNoise, biomeColorHex } from "@/lib/biomes";
 interface MiniMapProps {
   biome: BiomeConfig;
   seed?: number;
+  playerPosition?: [number, number, number] | null;
 }
 
-export default function MiniMap({ biome, seed = 0 }: MiniMapProps) {
+export default function MiniMap({ biome, seed = 0, playerPosition }: MiniMapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const terrainCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const cameraRef = useRef<{ x: number; z: number; rotY: number }>({ x: 0, z: 0, rotY: 0 });
