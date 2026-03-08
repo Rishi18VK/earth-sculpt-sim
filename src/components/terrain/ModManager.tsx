@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Package, Upload, Trash2, ToggleLeft, ToggleRight, Info, FileJson, Box, X, Plus } from "lucide-react";
+import { Package, Upload, Trash2, ToggleLeft, ToggleRight, Info, FileJson, Box, X, Plus, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import type { InstalledMod, ModConfig } from "@/lib/mod-types";
+import { MOD_PRESETS } from "@/lib/mod-presets";
 
 interface ModManagerProps {
   mods: InstalledMod[];
