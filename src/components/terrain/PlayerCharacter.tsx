@@ -24,11 +24,11 @@ const TERRAIN_HALF = 38;
 const GRAVITY = -25;
 const JUMP_FORCE = 10;
 
-export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdate, mobileInput }: PlayerCharacterProps) {
+export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdate, mobileInput, modOverrides }: PlayerCharacterProps) {
   const groupRef = useRef<THREE.Group>(null);
   const cameraAngleRef = useRef(0);
   const cameraPitchRef = useRef(0.3);
-  const cameraDistRef = useRef(CAMERA_DISTANCE);
+  const cameraDistRef = useRef(modOverrides?.cameraDistance ?? CAMERA_DISTANCE);
   const keysRef = useRef<Set<string>>(new Set());
   const mouseDownRef = useRef(false);
   const lastMouseRef = useRef({ x: 0, y: 0 });
