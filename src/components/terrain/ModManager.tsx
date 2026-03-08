@@ -14,6 +14,7 @@ interface ModManagerProps {
   mods: InstalledMod[];
   onInstallZip: (file: File) => Promise<InstalledMod>;
   onInstallFiles: (config: File | null, model: File | null, manual?: Partial<ModConfig>) => Promise<InstalledMod>;
+  onInstallPreset: (config: ModConfig) => Promise<InstalledMod>;
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
   error: string | null;
