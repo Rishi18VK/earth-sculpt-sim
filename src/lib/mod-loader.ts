@@ -65,10 +65,9 @@ export async function updateLocalMod(id: string, updates: Partial<InstalledMod>)
 
 // ---- ZIP Extraction ----
 
-export async function extractModFromZip(file: File): Promise<InstalledMod> {
+export async function extractModFromZip(file: File): Promise<{ mod: InstalledMod; modelBlob?: Blob }> {
   const zip = await JSZip.loadAsync(file);
 
-  // Find mod.json - could be at root or in a subfolder
   let modJsonFile: JSZip.JSZipObject | null = null;
   let basePath = "";
 
@@ -100,25 +99,23 @@ export async function extractModFromZip(file: File): Promise<InstalledMod> {
     throw new Error(`Unsupported mod type: "${config.type}". Only "player" mods are supported.`);
   }
 
-  // Extract model file
+  let modelBlob: Blob | undefined;
   let modelUrl: string | undefined;
   const modelExtensions = [".glb", ".gltf", ".obj"];
 
-  // Try explicit model path from config first
   if (config.model) {
     const modelFile = zip.file(basePath + config.model);
     if (modelFile) {
-      const blob = await modelFile.async("blob");
-      modelUrl = URL.createObjectURL(blob);
+      modelBlob = await modelFile.async("blob");
+      modelUrl = URL.createObjectURL(modelBlob);
     }
   }
 
-  // Fallback: find any model file
-  if (!modelUrl) {
-  for (const [path, entry] of Object.entries(zip.files) as [string, any][]) {
+  if (!modelBlob) {
+    for (const [path, entry] of Object.entries(zip.files) as [string, any][]) {
       if (!entry.dir && modelExtensions.some((ext: string) => path.toLowerCase().endsWith(ext))) {
-        const blob = await entry.async("blob");
-        modelUrl = URL.createObjectURL(blob);
+        modelBlob = await entry.async("blob");
+        modelUrl = URL.createObjectURL(modelBlob);
         break;
       }
     }
@@ -127,12 +124,8 @@ export async function extractModFromZip(file: File): Promise<InstalledMod> {
   const id = `mod_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
   return {
-    id,
-    config,
-    enabled: true,
-    modelUrl,
-    createdAt: Date.now(),
-    source: "local",
+    mod: { id, config, enabled: true, modelUrl, createdAt: Date.now(), source: "local" },
+    modelBlob,
   };
 }
 
