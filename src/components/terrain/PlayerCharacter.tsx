@@ -3,7 +3,7 @@ import { useFrame, useThree, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
 import { BiomeConfig, biomeNoise } from "@/lib/biomes";
-import type { ModPlayerOverrides } from "@/lib/mod-types";
+import type { ModPlayerOverrides, ModCameraOverrides } from "@/lib/mod-types";
 
 interface PlayerCharacterProps {
   biome: BiomeConfig;
@@ -12,6 +12,7 @@ interface PlayerCharacterProps {
   onPositionUpdate?: (pos: [number, number, number]) => void;
   mobileInput?: { moveX: number; moveZ: number; cameraX: number; cameraY: number };
   modOverrides?: ModPlayerOverrides | null;
+  cameraOverrides?: ModCameraOverrides | null;
 }
 
 const MOVE_SPEED = 8;
