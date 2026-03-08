@@ -1,15 +1,43 @@
 import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { BiomeConfig, biomeNoise, biomeColor, biomeTerrainType } from "@/lib/biomes";
+import { BiomeConfig, biomeNoise, biomeColor } from "@/lib/biomes";
+import type { ModTerrainColorOverrides } from "@/lib/mod-types";
 
 interface TerrainMeshProps {
   onPointClick?: (info: { type: string; height: number; position: [number, number, number] }) => void;
   biome: BiomeConfig;
   seed?: number;
+  colorOverrides?: ModTerrainColorOverrides | null;
 }
 
-export default function TerrainMesh({ onPointClick, biome, seed = 0 }: TerrainMeshProps) {
+function applyColorMod(color: THREE.Color, overrides: ModTerrainColorOverrides): THREE.Color {
+  const hsl = { h: 0, s: 0, l: 0 };
+  color.getHSL(hsl);
+
+  if (overrides.hueShift != null) {
+    hsl.h = (hsl.h + overrides.hueShift) % 1;
+    if (hsl.h < 0) hsl.h += 1;
+  }
+  if (overrides.saturationShift != null) {
+    hsl.s = Math.max(0, Math.min(1, hsl.s + overrides.saturationShift));
+  }
+  if (overrides.lightnessShift != null) {
+    hsl.l = Math.max(0, Math.min(1, hsl.l + overrides.lightnessShift));
+  }
+
+  color.setHSL(hsl.h, hsl.s, hsl.l);
+
+  if (overrides.colorMultiplier) {
+    color.r *= overrides.colorMultiplier.r;
+    color.g *= overrides.colorMultiplier.g;
+    color.b *= overrides.colorMultiplier.b;
+  }
+
+  return color;
+}
+
+export default function TerrainMesh({ onPointClick, biome, seed = 0, colorOverrides }: TerrainMeshProps) {
   const meshRef = useRef<THREE.Mesh>(null);
 
   const { geometry, waterGeometry } = useMemo(() => {
@@ -28,6 +56,9 @@ export default function TerrainMesh({ onPointClick, biome, seed = 0 }: TerrainMe
       positions.setY(i, height);
 
       const color = biomeColor(height, biome);
+      if (colorOverrides) {
+        applyColorMod(color, colorOverrides);
+      }
       colors[i * 3] = color.r;
       colors[i * 3 + 1] = color.g;
       colors[i * 3 + 2] = color.b;
@@ -40,9 +71,11 @@ export default function TerrainMesh({ onPointClick, biome, seed = 0 }: TerrainMe
     waterGeo.rotateX(-Math.PI / 2);
 
     return { geometry: geo, waterGeometry: waterGeo };
-  }, [biome, seed]);
+  }, [biome, seed, colorOverrides?.modName]);
 
   const waterRef = useRef<THREE.Mesh>(null);
+  const waterColor = colorOverrides?.waterColor || biome.waterColor;
+  const waterOpacity = colorOverrides?.waterOpacity ?? biome.waterOpacity;
 
   useFrame((state) => {
     if (waterRef.current) {
@@ -54,8 +87,9 @@ export default function TerrainMesh({ onPointClick, biome, seed = 0 }: TerrainMe
     e.stopPropagation();
     const point = e.point;
     const height = point.y;
+    // Use biome's original terrain type labels
+    const { biomeTerrainType } = require("@/lib/biomes");
     const type = biomeTerrainType(height, biome);
-
     onPointClick?.({
       type,
       height: Math.round(height * 100) / 100,
@@ -70,9 +104,9 @@ export default function TerrainMesh({ onPointClick, biome, seed = 0 }: TerrainMe
       </mesh>
       <mesh ref={waterRef} geometry={waterGeometry} position={[0, biome.waterLevel, 0]}>
         <meshStandardMaterial
-          color={biome.waterColor}
+          color={waterColor}
           transparent
-          opacity={biome.waterOpacity}
+          opacity={waterOpacity}
           roughness={0.1}
           metalness={0.3}
           side={THREE.DoubleSide}
