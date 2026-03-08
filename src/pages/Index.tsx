@@ -236,6 +236,7 @@ const Index = () => {
           mods={mods}
           onInstallZip={installFromZip}
           onInstallFiles={installFromFiles}
+          onInstallPreset={installPreset}
           onToggle={toggleMod}
           onRemove={removeMod}
           error={modError}

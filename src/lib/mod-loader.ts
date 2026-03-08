@@ -178,6 +178,19 @@ export async function createModFromFiles(
   };
 }
 
+// ---- Create mod from preset config (no files) ----
+
+export function createModFromPreset(config: ModConfig): InstalledMod {
+  const id = `mod_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  return {
+    id,
+    config,
+    enabled: true,
+    createdAt: Date.now(),
+    source: "local",
+  };
+}
+
 // ---- Get active player mod overrides ----
 
 export function getActivePlayerOverrides(mods: InstalledMod[]) {
