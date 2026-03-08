@@ -39,7 +39,7 @@ const Index = () => {
   const [showSound, setShowSound] = useState(false);
 
   const biome = BIOMES[currentBiome];
-  const { mods, error: modError, installFromZip, installFromFiles, toggleMod, removeMod, playerOverrides, clearError } = useMods();
+  const { mods, error: modError, installFromZip, installFromFiles, installPreset, toggleMod, removeMod, playerOverrides, clearError } = useMods();
 
   const activeMod = mods.find((m) => m.enabled && m.config.type === "player");
 
@@ -236,6 +236,7 @@ const Index = () => {
           mods={mods}
           onInstallZip={installFromZip}
           onInstallFiles={installFromFiles}
+          onInstallPreset={installPreset}
           onToggle={toggleMod}
           onRemove={removeMod}
           error={modError}

@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Package, Upload, Trash2, ToggleLeft, ToggleRight, Info, FileJson, Box, X, Plus } from "lucide-react";
+import { Package, Upload, Trash2, ToggleLeft, ToggleRight, Info, FileJson, Box, X, Plus, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -8,11 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import type { InstalledMod, ModConfig } from "@/lib/mod-types";
+import { MOD_PRESETS } from "@/lib/mod-presets";
 
 interface ModManagerProps {
   mods: InstalledMod[];
   onInstallZip: (file: File) => Promise<InstalledMod>;
   onInstallFiles: (config: File | null, model: File | null, manual?: Partial<ModConfig>) => Promise<InstalledMod>;
+  onInstallPreset: (config: ModConfig) => Promise<InstalledMod>;
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
   error: string | null;
@@ -25,6 +27,7 @@ export default function ModManager({
   mods,
   onInstallZip,
   onInstallFiles,
+  onInstallPreset,
   onToggle,
   onRemove,
   error,
@@ -132,16 +135,70 @@ export default function ModManager({
           </div>
         )}
 
-        <Tabs defaultValue="installed">
+        <Tabs defaultValue="presets">
           <TabsList className="w-full">
+            <TabsTrigger value="presets" className="flex-1">
+              <Sparkles className="h-3 w-3 mr-1" />
+              Presets
+            </TabsTrigger>
             <TabsTrigger value="installed" className="flex-1">
               Installed ({mods.length})
             </TabsTrigger>
             <TabsTrigger value="install" className="flex-1">
               <Plus className="h-3 w-3 mr-1" />
-              Install New
+              Custom
             </TabsTrigger>
           </TabsList>
+
+          {/* Presets Tab */}
+          <TabsContent value="presets" className="space-y-2">
+            <p className="text-xs text-muted-foreground">One-click install built-in mods to customize your player.</p>
+            {MOD_PRESETS.map((preset) => {
+              const alreadyInstalled = mods.some((m) => m.config.name === preset.config.name);
+              return (
+                <div
+                  key={preset.id}
+                  className="border rounded-lg p-3 flex items-start gap-3 transition-colors hover:bg-muted/30"
+                >
+                  <span className="text-2xl mt-0.5">{preset.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-semibold text-foreground">{preset.config.name}</h4>
+                    <p className="text-xs text-muted-foreground mt-0.5">{preset.config.description}</p>
+                    <div className="flex flex-wrap gap-2 mt-2 text-[10px] text-muted-foreground font-mono">
+                      {preset.config.player?.speed != null && <span>Speed: {preset.config.player.speed}</span>}
+                      {preset.config.player?.jumpForce != null && <span>Jump: {preset.config.player.jumpForce}</span>}
+                      {preset.config.player?.gravity != null && <span>Gravity: {preset.config.player.gravity}</span>}
+                      {preset.config.player?.scale != null && <span>Scale: {preset.config.player.scale}x</span>}
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant={alreadyInstalled ? "secondary" : "default"}
+                    className="shrink-0 text-xs gap-1"
+                    disabled={uploading || alreadyInstalled}
+                    onClick={async () => {
+                      setUploading(true);
+                      try {
+                        await onInstallPreset(preset.config);
+                        toast.success(`"${preset.config.name}" installed!`);
+                      } catch (err: any) {
+                        toast.error(err.message || "Failed to install preset");
+                      } finally {
+                        setUploading(false);
+                      }
+                    }}
+                  >
+                    {alreadyInstalled ? "Installed" : (
+                      <>
+                        <Zap className="h-3 w-3" />
+                        Install
+                      </>
+                    )}
+                  </Button>
+                </div>
+              );
+            })}
+          </TabsContent>
 
           {/* Installed Mods Tab */}
           <TabsContent value="installed" className="space-y-2">

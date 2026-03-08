@@ -6,6 +6,7 @@ import {
   updateLocalMod,
   extractModFromZip,
   createModFromFiles,
+  createModFromPreset,
   getActivePlayerOverrides,
 } from "@/lib/mod-loader";
 import type { InstalledMod, ModConfig, ModPlayerOverrides } from "@/lib/mod-types";
@@ -89,6 +90,19 @@ export function useMods() {
     setMods((prev) => prev.filter((m) => m.id !== id));
   }, []);
 
+  const installPreset = useCallback(async (config: ModConfig) => {
+    setError(null);
+    try {
+      const mod = createModFromPreset(config);
+      await saveLocalMod(mod);
+      setMods((prev) => [...prev, mod]);
+      return mod;
+    } catch (e: any) {
+      setError(e.message);
+      throw e;
+    }
+  }, []);
+
   const playerOverrides = getActivePlayerOverrides(mods);
 
   return {
@@ -97,6 +111,7 @@ export function useMods() {
     error,
     installFromZip,
     installFromFiles,
+    installPreset,
     toggleMod,
     removeMod,
     playerOverrides,
