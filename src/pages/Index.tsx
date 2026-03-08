@@ -39,7 +39,7 @@ const Index = () => {
   const [showSound, setShowSound] = useState(false);
 
   const biome = BIOMES[currentBiome];
-  const { mods, error: modError, installFromZip, installFromFiles, installPreset, toggleMod, removeMod, playerOverrides, clearError } = useMods();
+  const { mods, error: modError, installFromZip, installFromFiles, installPreset, toggleMod, removeMod, playerOverrides, weatherOverrides, terrainColorOverrides, biomeEffectOverrides, cameraOverrides, clearError } = useMods();
 
   const activeMod = mods.find((m) => m.enabled && m.config.type === "player");
 
