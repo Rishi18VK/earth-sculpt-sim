@@ -135,7 +135,7 @@ export async function createModFromFiles(
   configFile: File | null,
   modelFile: File | null,
   manualConfig?: Partial<ModConfig>
-): Promise<InstalledMod> {
+): Promise<{ mod: InstalledMod; modelBlob?: Blob }> {
   let config: ModConfig;
 
   if (configFile) {
@@ -158,6 +158,7 @@ export async function createModFromFiles(
     throw new Error("Either a config file or manual configuration is required.");
   }
 
+  let modelBlob: Blob | undefined;
   let modelUrl: string | undefined;
   if (modelFile) {
     const validExts = [".glb", ".gltf", ".obj"];
@@ -165,18 +166,15 @@ export async function createModFromFiles(
     if (!validExts.includes(ext)) {
       throw new Error(`Unsupported model format: ${ext}. Use GLB, GLTF, or OBJ.`);
     }
+    modelBlob = modelFile;
     modelUrl = URL.createObjectURL(modelFile);
   }
 
   const id = `mod_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
   return {
-    id,
-    config,
-    enabled: true,
-    modelUrl,
-    createdAt: Date.now(),
-    source: "local",
+    mod: { id, config, enabled: true, modelUrl, createdAt: Date.now(), source: "local" },
+    modelBlob,
   };
 }
 
