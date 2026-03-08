@@ -12,6 +12,7 @@ import { Suspense, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { BiomeConfig } from "@/lib/biomes";
+import type { ModPlayerOverrides } from "@/lib/mod-types";
 
 interface MeasurementPoint {
   position: [number, number, number];
