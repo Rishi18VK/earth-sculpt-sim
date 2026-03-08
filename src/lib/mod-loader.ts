@@ -4,6 +4,7 @@ import type { ModConfig, InstalledMod } from "./mod-types";
 
 const MOD_STORE_PREFIX = "terracraft_mod_";
 const MOD_LIST_KEY = "terracraft_mod_list";
+const MOD_BLOB_PREFIX = "terracraft_mod_blob_";
 
 // ---- IndexedDB Local Storage ----
 
