@@ -202,7 +202,7 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
     const camAngle = cameraAngleRef.current;
     const camTargetX = pos.x + Math.sin(camAngle) * Math.cos(pitch) * dist;
     const camTargetZ = pos.z + Math.cos(camAngle) * Math.cos(pitch) * dist;
-    const camTargetY = pos.y + CAMERA_HEIGHT + Math.sin(pitch) * dist * 0.5;
+    const camTargetY = pos.y + (modOverrides?.cameraHeight ?? CAMERA_HEIGHT) + Math.sin(pitch) * dist * 0.5;
 
     camera.position.x += (camTargetX - camera.position.x) * Math.min(dt * CAMERA_LERP, 1);
     camera.position.y += (camTargetY - camera.position.y) * Math.min(dt * CAMERA_LERP, 1);
