@@ -17,6 +17,8 @@ interface ModManagerProps {
   onRemove: (id: string) => void;
   error: string | null;
   onClearError: () => void;
+  externalOpen?: boolean;
+  onExternalOpenChange?: (open: boolean) => void;
 }
 
 export default function ModManager({
