@@ -163,8 +163,9 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
     // Gravity & terrain collision
     const terrainH = biomeNoise(pos.x, pos.z, biome, seed);
     const groundY = Math.max(terrainH, biome.waterLevel + 0.3);
+    const gravity = modOverrides?.gravity ?? GRAVITY;
 
-    velocityYRef.current += GRAVITY * dt;
+    velocityYRef.current += gravity * dt;
     pos.y += velocityYRef.current * dt;
 
     if (pos.y <= groundY) {
