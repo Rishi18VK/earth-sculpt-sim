@@ -126,7 +126,7 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
 
     // Jump
     if (keys.has(" ") && isGroundedRef.current) {
-      velocityYRef.current = JUMP_FORCE;
+      velocityYRef.current = modOverrides?.jumpForce ?? JUMP_FORCE;
       isGroundedRef.current = false;
     }
 
