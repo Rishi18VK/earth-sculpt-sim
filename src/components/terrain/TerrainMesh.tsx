@@ -88,8 +88,6 @@ export default function TerrainMesh({ onPointClick, biome, seed = 0, colorOverri
     e.stopPropagation();
     const point = e.point;
     const height = point.y;
-    // Use biome's original terrain type labels
-    const { biomeTerrainType } = require("@/lib/biomes");
     const type = biomeTerrainType(height, biome);
     onPointClick?.({
       type,
