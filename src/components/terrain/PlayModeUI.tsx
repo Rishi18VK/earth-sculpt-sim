@@ -9,20 +9,10 @@ interface PlayModeUIProps {
 }
 
 export default function PlayModeUI({ playMode, onToggle, playerPosition, collectibles }: PlayModeUIProps) {
+  if (!playMode || !playerPosition) return null;
+  
   return (
     <>
-      {/* Toggle button */}
-      <div className="flex items-center gap-2">
-        <Button
-          variant={playMode ? "destructive" : "default"}
-          size="sm"
-          onClick={onToggle}
-          className="gap-1.5 text-xs"
-        >
-          {playMode ? <X className="h-3.5 w-3.5" /> : <Gamepad2 className="h-3.5 w-3.5" />}
-          {playMode ? "Exit Play" : "Play Mode"}
-        </Button>
-      </div>
 
       {/* Player coordinates HUD */}
       {playMode && playerPosition && (
