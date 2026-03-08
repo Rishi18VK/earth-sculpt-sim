@@ -28,6 +28,7 @@ interface Scene3DProps {
   isNight?: boolean;
   playMode?: boolean;
   onPlayerPositionUpdate?: (pos: [number, number, number]) => void;
+  onCollect?: (collected: number, total: number) => void;
   mobileInput?: { moveX: number; moveZ: number; cameraX: number; cameraY: number };
 }
 
