@@ -218,8 +218,36 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
 
   if (!playMode) return null;
 
+  const scale = modOverrides?.scale ?? 1;
+
   return (
     <group ref={groupRef}>
+      <group scale={[scale, scale, scale]}>
+        {modOverrides?.modelUrl ? (
+          <Suspense fallback={<DefaultPlayerModel />}>
+            <CustomModelLoader url={modOverrides.modelUrl} />
+          </Suspense>
+        ) : (
+          <DefaultPlayerModel />
+        )}
+      </group>
+      {/* Shadow indicator */}
+      <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.4 * scale, 16]} />
+        <meshBasicMaterial color="#000000" transparent opacity={0.3} />
+      </mesh>
+    </group>
+  );
+}
+
+function CustomModelLoader({ url }: { url: string }) {
+  const { scene } = useGLTF(url);
+  return <primitive object={scene.clone()} castShadow />;
+}
+
+function DefaultPlayerModel() {
+  return (
+    <>
       {/* Body */}
       <mesh position={[0, 0.9, 0]} castShadow>
         <boxGeometry args={[0.5, 0.6, 0.3]} />
@@ -267,11 +295,6 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
           <meshStandardMaterial color="#1e40af" roughness={0.8} />
         </mesh>
       </group>
-      {/* Shadow indicator */}
-      <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.4, 16]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.3} />
-      </mesh>
-    </group>
+    </>
   );
 }
