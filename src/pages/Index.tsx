@@ -109,6 +109,7 @@ const Index = () => {
           onPlayerPositionUpdate={setPlayerPosition}
           onCollect={(collected, total) => setCollectibles({ collected, total })}
           mobileInput={mobileInput}
+          modOverrides={playerOverrides}
         />
       </div>
 
