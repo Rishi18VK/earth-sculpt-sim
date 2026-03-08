@@ -11,6 +11,7 @@ interface PlayerCharacterProps {
   playMode: boolean;
   onPositionUpdate?: (pos: [number, number, number]) => void;
   mobileInput?: { moveX: number; moveZ: number; cameraX: number; cameraY: number };
+  modOverrides?: ModPlayerOverrides | null;
 }
 
 const MOVE_SPEED = 8;
