@@ -9,9 +9,11 @@ import DayNightToggle from "@/components/terrain/DayNightToggle";
 import AmbientSoundToggle from "@/components/terrain/AmbientSoundToggle";
 import PlayModeUI from "@/components/terrain/PlayModeUI";
 import MobileControls from "@/components/terrain/MobileControls";
+import ModManager from "@/components/terrain/ModManager";
 import { Badge } from "@/components/ui/badge";
 import { Mountain, Compass } from "lucide-react";
 import { BIOMES, BiomeId } from "@/lib/biomes";
+import { useMods } from "@/hooks/use-mods";
 
 interface TerrainInfo {
   type: string;
