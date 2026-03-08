@@ -5,9 +5,10 @@ interface PlayModeUIProps {
   playMode: boolean;
   onToggle: () => void;
   playerPosition: [number, number, number] | null;
+  collectibles?: { collected: number; total: number };
 }
 
-export default function PlayModeUI({ playMode, onToggle, playerPosition }: PlayModeUIProps) {
+export default function PlayModeUI({ playMode, onToggle, playerPosition, collectibles }: PlayModeUIProps) {
   return (
     <>
       {/* Toggle button */}
