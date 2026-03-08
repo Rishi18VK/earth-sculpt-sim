@@ -103,8 +103,8 @@ export async function extractModFromZip(file: File): Promise<InstalledMod> {
 
   // Fallback: find any model file
   if (!modelUrl) {
-    for (const [path, entry] of Object.entries(zip.files)) {
-      if (!entry.dir && modelExtensions.some((ext) => path.toLowerCase().endsWith(ext))) {
+  for (const [path, entry] of Object.entries(zip.files) as [string, any][]) {
+      if (!entry.dir && modelExtensions.some((ext: string) => path.toLowerCase().endsWith(ext))) {
         const blob = await entry.async("blob");
         modelUrl = URL.createObjectURL(blob);
         break;
