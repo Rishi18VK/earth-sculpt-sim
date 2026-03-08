@@ -126,7 +126,7 @@ export default function MiniMap({ biome, seed = 0, playerPosition }: MiniMapProp
 
   return (
     <Html position={[0, 0, 0]} style={{ pointerEvents: "none" }} wrapperClass="minimap-wrapper">
-      <div style={{ position: "fixed", bottom: "16px", left: "16px", pointerEvents: "auto" }}>
+      <div style={{ position: "fixed", bottom: "16px", left: "16px", pointerEvents: "auto", zIndex: 10 }}>
         <div
           style={{
             background: "rgba(10, 22, 40, 0.85)",
