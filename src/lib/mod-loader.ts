@@ -21,7 +21,16 @@ export async function loadLocalMods(): Promise<InstalledMod[]> {
   const mods: InstalledMod[] = [];
   for (const id of ids) {
     const mod = await get<InstalledMod>(`${MOD_STORE_PREFIX}${id}`);
-    if (mod) mods.push(mod);
+    if (mod) {
+      // Recreate blob URL from stored blob data
+      const blobData = await get<Blob>(`${MOD_BLOB_PREFIX}${id}`);
+      if (blobData) {
+        mod.modelUrl = URL.createObjectURL(blobData);
+      } else {
+        mod.modelUrl = undefined; // Clear stale blob URLs
+      }
+      mods.push(mod);
+    }
   }
   return mods;
 }
