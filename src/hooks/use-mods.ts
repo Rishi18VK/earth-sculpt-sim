@@ -111,6 +111,7 @@ export function useMods() {
     error,
     installFromZip,
     installFromFiles,
+    installPreset,
     toggleMod,
     removeMod,
     playerOverrides,
