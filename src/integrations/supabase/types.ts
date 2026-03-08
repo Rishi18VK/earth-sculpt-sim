@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      mods: {
+        Row: {
+          author: string
+          config: Json
+          created_at: string
+          description: string | null
+          enabled: boolean
+          id: string
+          mod_type: string
+          model_path: string | null
+          name: string
+          updated_at: string
+          user_id: string | null
+          version: string
+        }
+        Insert: {
+          author?: string
+          config?: Json
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          mod_type?: string
+          model_path?: string | null
+          name: string
+          updated_at?: string
+          user_id?: string | null
+          version?: string
+        }
+        Update: {
+          author?: string
+          config?: Json
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          mod_type?: string
+          model_path?: string | null
+          name?: string
+          updated_at?: string
+          user_id?: string | null
+          version?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
