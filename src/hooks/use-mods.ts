@@ -26,8 +26,8 @@ export function useMods() {
   const installFromZip = useCallback(async (file: File) => {
     setError(null);
     try {
-      const mod = await extractModFromZip(file);
-      await saveLocalMod(mod);
+      const { mod, modelBlob } = await extractModFromZip(file);
+      await saveLocalMod(mod, modelBlob);
       setMods((prev) => [...prev, mod]);
       return mod;
     } catch (e: any) {
@@ -40,8 +40,8 @@ export function useMods() {
     async (configFile: File | null, modelFile: File | null, manualConfig?: Partial<ModConfig>) => {
       setError(null);
       try {
-        const mod = await createModFromFiles(configFile, modelFile, manualConfig);
-        await saveLocalMod(mod);
+        const { mod, modelBlob } = await createModFromFiles(configFile, modelFile, manualConfig);
+        await saveLocalMod(mod, modelBlob);
         setMods((prev) => [...prev, mod]);
         return mod;
       } catch (e: any) {

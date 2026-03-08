@@ -241,8 +241,12 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
 }
 
 function CustomModelLoader({ url }: { url: string }) {
-  const { scene } = useGLTF(url);
-  return <primitive object={scene.clone()} castShadow />;
+  try {
+    const { scene } = useGLTF(url);
+    return <primitive object={scene.clone()} castShadow />;
+  } catch {
+    return <DefaultPlayerModel />;
+  }
 }
 
 function DefaultPlayerModel() {
