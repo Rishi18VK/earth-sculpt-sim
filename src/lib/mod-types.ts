@@ -85,6 +85,7 @@ export interface ModPlayerOverrides {
   cameraHeight?: number;
   scale?: number;
   modelUrl?: string;
+  modName?: string;
 }
 
 export interface ModWeatherOverrides {
