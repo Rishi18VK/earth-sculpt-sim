@@ -189,7 +189,7 @@ function AnimatedStars({ isNight }: { isNight: boolean }) {
   );
 }
 
-export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0, isNight = false }: Scene3DProps) {
+export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0, isNight = false, playMode = false, onPlayerPositionUpdate, mobileInput }: Scene3DProps) {
   return (
     <Canvas
       shadows
