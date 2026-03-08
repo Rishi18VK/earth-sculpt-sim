@@ -30,6 +30,7 @@ const Index = () => {
   const [playMode, setPlayMode] = useState(false);
   const [playerPosition, setPlayerPosition] = useState<[number, number, number] | null>(null);
   const [mobileInput, setMobileInput] = useState({ moveX: 0, moveZ: 0, cameraX: 0, cameraY: 0 });
+  const [collectibles, setCollectibles] = useState({ collected: 0, total: 0 });
 
   const biome = BIOMES[currentBiome];
 
