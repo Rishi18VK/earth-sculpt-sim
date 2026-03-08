@@ -15,7 +15,6 @@ export default function PlayModeUI({ playMode, onToggle, playerPosition, collect
     <>
 
       {/* Player coordinates HUD */}
-      {playMode && playerPosition && (
         <div className="bg-card/80 backdrop-blur-md rounded-lg px-3 py-2 border border-border/50">
           <p className="text-[10px] font-mono text-muted-foreground mb-1">🎮 Player Position</p>
           <div className="grid grid-cols-3 gap-2 text-[10px] font-mono">
