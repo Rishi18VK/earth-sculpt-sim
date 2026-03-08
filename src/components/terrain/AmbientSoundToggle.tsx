@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { ambientAudio } from "@/lib/ambient-audio";
@@ -11,6 +11,30 @@ const BIOME_SOUND_LABELS: Record<BiomeId, { day: string; night: string }> = {
   desert: { day: "🔥 Fire Crackling", night: "🐺 Desert Night" },
   tropical: { day: "🦗 Insects & Nature", night: "🐸 Frogs & Crickets" },
 };
+
+const BAR_COUNT = 5;
+
+function EqualizerBars() {
+  return (
+    <div className="flex items-end gap-[2px] h-4">
+      {Array.from({ length: BAR_COUNT }).map((_, i) => (
+        <span
+          key={i}
+          className="w-[3px] rounded-full bg-primary origin-bottom"
+          style={{
+            animation: `eq-bounce 0.8s ease-in-out ${i * 0.12}s infinite alternate`,
+          }}
+        />
+      ))}
+      <style>{`
+        @keyframes eq-bounce {
+          0% { height: 3px; }
+          100% { height: 14px; }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 interface AmbientSoundToggleProps {
   biome: BiomeId;
@@ -62,9 +86,10 @@ export default function AmbientSoundToggle({ biome, isNight = false }: AmbientSo
         ) : (
           <VolumeX className="h-4 w-4 text-muted-foreground" />
         )}
-        <span className="text-xs font-medium text-foreground">
+        <span className="text-xs font-medium text-foreground flex-1">
           {isPlaying ? label : "Ambient Sound Off"}
         </span>
+        {isPlaying && <EqualizerBars />}
       </button>
       {isPlaying && (
         <Slider
