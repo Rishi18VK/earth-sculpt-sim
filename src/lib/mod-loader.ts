@@ -71,7 +71,7 @@ export async function extractModFromZip(file: File): Promise<InstalledMod> {
     throw new Error("No mod.json found in ZIP file. Please include a mod.json configuration file.");
   }
 
-  const configText = await (modJsonFile as JSZip.JSZipObject).text();
+  const configText = await (modJsonFile as JSZip.JSZipObject).async("text");
   let config: ModConfig;
 
   try {
