@@ -1,7 +1,9 @@
-import { useRef, useEffect, useCallback } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useRef, useEffect, useCallback, Suspense } from "react";
+import { useFrame, useThree, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
+import { useGLTF } from "@react-three/drei";
 import { BiomeConfig, biomeNoise } from "@/lib/biomes";
+import type { ModPlayerOverrides } from "@/lib/mod-types";
 
 interface PlayerCharacterProps {
   biome: BiomeConfig;
