@@ -24,6 +24,9 @@ interface Scene3DProps {
   biome: BiomeConfig;
   seed?: number;
   isNight?: boolean;
+  playMode?: boolean;
+  onPlayerPositionUpdate?: (pos: [number, number, number]) => void;
+  mobileInput?: { moveX: number; moveZ: number; cameraX: number; cameraY: number };
 }
 
 function lerp(a: number, b: number, t: number) {
