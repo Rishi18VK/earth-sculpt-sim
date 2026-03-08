@@ -213,16 +213,18 @@ export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0,
         <MiniMap biome={biome} seed={seed} />
       </Suspense>
 
-      <OrbitControls
-        enablePan
-        enableZoom
-        enableRotate
-        minDistance={5}
-        maxDistance={80}
-        maxPolarAngle={Math.PI / 2.1}
-        autoRotate
-        autoRotateSpeed={0.3}
-      />
+      {!playMode && (
+        <OrbitControls
+          enablePan
+          enableZoom
+          enableRotate
+          minDistance={5}
+          maxDistance={80}
+          maxPolarAngle={Math.PI / 2.1}
+          autoRotate
+          autoRotateSpeed={0.3}
+        />
+      )}
     </Canvas>
   );
 }
