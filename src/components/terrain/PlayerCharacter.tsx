@@ -111,9 +111,11 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
     const pos = posRef.current;
     const keys = keysRef.current;
 
-    // Sprint check
+    // Sprint check - use mod overrides if available
     const isSprinting = keys.has("shift");
-    const speed = isSprinting ? SPRINT_SPEED : MOVE_SPEED;
+    const baseSpeed = modOverrides?.speed ?? MOVE_SPEED;
+    const sprintSpeed = modOverrides?.sprintSpeed ?? SPRINT_SPEED;
+    const speed = isSprinting ? sprintSpeed : baseSpeed;
 
     // Movement input
     let moveX = 0, moveZ = 0;
