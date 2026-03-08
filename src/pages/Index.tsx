@@ -105,6 +105,7 @@ const Index = () => {
           isNight={isNight}
           playMode={playMode}
           onPlayerPositionUpdate={setPlayerPosition}
+          onCollect={(collected, total) => setCollectibles({ collected, total })}
           mobileInput={mobileInput}
         />
       </div>
