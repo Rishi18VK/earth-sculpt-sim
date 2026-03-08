@@ -27,6 +27,7 @@ export default function ModManager({
   mods,
   onInstallZip,
   onInstallFiles,
+  onInstallPreset,
   onToggle,
   onRemove,
   error,
