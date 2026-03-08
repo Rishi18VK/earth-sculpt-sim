@@ -35,7 +35,7 @@ const Index = () => {
   const [collectibles, setCollectibles] = useState({ collected: 0, total: 0 });
 
   const biome = BIOMES[currentBiome];
-
+  const { mods, error: modError, installFromZip, installFromFiles, toggleMod, removeMod, playerOverrides, clearError } = useMods();
   const handlePointClick = useCallback(
     (info: TerrainInfo) => {
       if (playMode) return; // Disable terrain clicking in play mode
