@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Sky, Stars, PerspectiveCamera } from "@react-three/drei";
 import TerrainMesh from "./TerrainMesh";
@@ -190,6 +191,13 @@ function AnimatedStars({ isNight }: { isNight: boolean }) {
 }
 
 export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0, isNight = false, playMode = false, onPlayerPositionUpdate, mobileInput }: Scene3DProps) {
+  const [playerPos, setPlayerPos] = useState<[number, number, number] | null>(null);
+
+  const handlePlayerPosition = useCallback((pos: [number, number, number]) => {
+    setPlayerPos(pos);
+    onPlayerPositionUpdate?.(pos);
+  }, [onPlayerPositionUpdate]);
+
   return (
     <Canvas
       shadows
@@ -208,9 +216,9 @@ export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0,
         <TerrainMesh onPointClick={onPointClick} biome={biome} seed={seed} />
         <BiomeObjects biome={biome} seed={seed} />
         <WeatherEffects biome={biome} />
-        <PlayerCharacter biome={biome} seed={seed} playMode={playMode} onPositionUpdate={onPlayerPositionUpdate} mobileInput={mobileInput} />
+        <PlayerCharacter biome={biome} seed={seed} playMode={playMode} onPositionUpdate={handlePlayerPosition} mobileInput={mobileInput} />
         <MeasurementMarkers pointA={pointA || null} pointB={pointB || null} />
-        <MiniMap biome={biome} seed={seed} />
+        <MiniMap biome={biome} seed={seed} playerPosition={playMode ? playerPos : null} />
       </Suspense>
 
       {!playMode && (

@@ -7,9 +7,10 @@ import { BiomeConfig, biomeNoise, biomeColorHex } from "@/lib/biomes";
 interface MiniMapProps {
   biome: BiomeConfig;
   seed?: number;
+  playerPosition?: [number, number, number] | null;
 }
 
-export default function MiniMap({ biome, seed = 0 }: MiniMapProps) {
+export default function MiniMap({ biome, seed = 0, playerPosition }: MiniMapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const terrainCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const cameraRef = useRef<{ x: number; z: number; rotY: number }>({ x: 0, z: 0, rotY: 0 });
@@ -91,6 +92,36 @@ export default function MiniMap({ biome, seed = 0 }: MiniMapProps) {
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 1.5;
     ctx.stroke();
+
+    // Player marker
+    if (playerPosition) {
+      const px = (playerPosition[0] + terrainSize / 2) * scale;
+      const pz = (playerPosition[2] + terrainSize / 2) * scale;
+
+      // Pulsing ring
+      const pulse = (Math.sin(Date.now() * 0.005) + 1) * 0.5;
+      const ringRadius = 6 + pulse * 3;
+      ctx.beginPath();
+      ctx.arc(px, pz, ringRadius, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(250, 204, 21, ${0.4 - pulse * 0.2})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Player dot
+      ctx.beginPath();
+      ctx.arc(px, pz, 4, 0, Math.PI * 2);
+      ctx.fillStyle = "#facc15";
+      ctx.fill();
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Direction indicator
+      ctx.beginPath();
+      ctx.arc(px, pz, 2, 0, Math.PI * 2);
+      ctx.fillStyle = "#fff";
+      ctx.fill();
+    }
   });
 
   return (
