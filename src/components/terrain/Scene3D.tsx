@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Sky, Stars, PerspectiveCamera } from "@react-three/drei";
 import TerrainMesh from "./TerrainMesh";
