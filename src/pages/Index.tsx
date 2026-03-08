@@ -231,7 +231,7 @@ const Index = () => {
       </Sheet>
 
       {/* Mod Manager — uses its own Dialog, we just trigger open */}
-      <div className="hidden">
+      <div className="sr-only">
         <ModManager
           mods={mods}
           onInstallZip={installFromZip}
