@@ -5,6 +5,7 @@ import MeasurementMarkers from "./MeasurementMarkers";
 import MiniMap from "./MiniMap";
 import BiomeObjects from "./BiomeObjects";
 import WeatherEffects from "./WeatherEffects";
+import PlayerCharacter from "./PlayerCharacter";
 import { Suspense, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
