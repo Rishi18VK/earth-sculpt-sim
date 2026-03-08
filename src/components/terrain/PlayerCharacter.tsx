@@ -25,7 +25,7 @@ const TERRAIN_HALF = 38;
 const GRAVITY = -25;
 const JUMP_FORCE = 10;
 
-export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdate, mobileInput, modOverrides }: PlayerCharacterProps) {
+export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdate, mobileInput, modOverrides, cameraOverrides }: PlayerCharacterProps) {
   const groupRef = useRef<THREE.Group>(null);
   const cameraAngleRef = useRef(0);
   const cameraPitchRef = useRef(0.3);
