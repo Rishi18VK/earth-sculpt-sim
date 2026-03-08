@@ -30,6 +30,8 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
   const mouseDownRef = useRef(false);
   const lastMouseRef = useRef({ x: 0, y: 0 });
   const walkPhaseRef = useRef(0);
+  const velocityYRef = useRef(0);
+  const isGroundedRef = useRef(true);
   const { camera, gl } = useThree();
 
   // Spawn position
