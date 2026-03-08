@@ -45,7 +45,10 @@ export default function PlayModeUI({ playMode, onToggle, playerPosition }: PlayM
             📏 Elevation: {playerPosition[1]}m
           </p>
           <p className="text-[9px] text-muted-foreground">
-            🖥️ WASD + Mouse | 📱 Joystick + Swipe
+            🖥️ WASD + Shift(Sprint) + Space(Jump)
+          </p>
+          <p className="text-[9px] text-muted-foreground">
+            📱 Joystick + Swipe | Jump & Sprint buttons
           </p>
         </div>
       )}
