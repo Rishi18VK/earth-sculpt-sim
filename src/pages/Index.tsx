@@ -114,6 +114,10 @@ const Index = () => {
           onCollect={(collected, total) => setCollectibles({ collected, total })}
           mobileInput={mobileInput}
           modOverrides={playerOverrides}
+          weatherOverrides={weatherOverrides}
+          terrainColorOverrides={terrainColorOverrides}
+          biomeEffectOverrides={biomeEffectOverrides}
+          cameraOverrides={cameraOverrides}
         />
       </div>
 
