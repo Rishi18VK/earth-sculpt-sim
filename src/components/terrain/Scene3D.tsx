@@ -194,7 +194,7 @@ function AnimatedStars({ isNight }: { isNight: boolean }) {
   );
 }
 
-export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0, isNight = false, playMode = false, onPlayerPositionUpdate, onCollect, mobileInput }: Scene3DProps) {
+export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0, isNight = false, playMode = false, onPlayerPositionUpdate, onCollect, mobileInput, modOverrides }: Scene3DProps) {
   const [playerPos, setPlayerPos] = useState<[number, number, number] | null>(null);
 
   const handlePlayerPosition = useCallback((pos: [number, number, number]) => {
@@ -220,7 +220,7 @@ export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0,
         <TerrainMesh onPointClick={onPointClick} biome={biome} seed={seed} />
         <BiomeObjects biome={biome} seed={seed} />
         <WeatherEffects biome={biome} />
-        <PlayerCharacter biome={biome} seed={seed} playMode={playMode} onPositionUpdate={handlePlayerPosition} mobileInput={mobileInput} />
+        <PlayerCharacter biome={biome} seed={seed} playMode={playMode} onPositionUpdate={handlePlayerPosition} mobileInput={mobileInput} modOverrides={modOverrides} />
         <Collectibles biome={biome} seed={seed} playerPosition={playerPos} playMode={playMode} onCollect={onCollect} />
         <MeasurementMarkers pointA={pointA || null} pointB={pointB || null} />
         <MiniMap biome={biome} seed={seed} playerPosition={playMode ? playerPos : null} />
