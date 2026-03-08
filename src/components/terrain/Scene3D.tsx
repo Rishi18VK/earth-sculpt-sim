@@ -210,7 +210,7 @@ export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0,
         <WeatherEffects biome={biome} />
         <PlayerCharacter biome={biome} seed={seed} playMode={playMode} onPositionUpdate={onPlayerPositionUpdate} mobileInput={mobileInput} />
         <MeasurementMarkers pointA={pointA || null} pointB={pointB || null} />
-        <MiniMap biome={biome} seed={seed} />
+        <MiniMap biome={biome} seed={seed} playerPosition={playMode ? undefined : null} playMode={playMode} playerPos={playerPosition} />
       </Suspense>
 
       {!playMode && (
