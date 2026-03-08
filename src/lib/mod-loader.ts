@@ -35,8 +35,13 @@ export async function loadLocalMods(): Promise<InstalledMod[]> {
   return mods;
 }
 
-export async function saveLocalMod(mod: InstalledMod): Promise<void> {
-  await set(`${MOD_STORE_PREFIX}${mod.id}`, mod);
+export async function saveLocalMod(mod: InstalledMod, modelBlob?: Blob): Promise<void> {
+  // Store mod metadata without the blob URL (it's transient)
+  const modToStore = { ...mod, modelUrl: modelBlob ? "has_blob" : undefined };
+  await set(`${MOD_STORE_PREFIX}${mod.id}`, modToStore);
+  if (modelBlob) {
+    await set(`${MOD_BLOB_PREFIX}${mod.id}`, modelBlob);
+  }
   const ids = await getModList();
   if (!ids.includes(mod.id)) {
     ids.push(mod.id);
@@ -45,11 +50,8 @@ export async function saveLocalMod(mod: InstalledMod): Promise<void> {
 }
 
 export async function deleteLocalMod(id: string): Promise<void> {
-  const mod = await get<InstalledMod>(`${MOD_STORE_PREFIX}${id}`);
-  if (mod?.modelUrl?.startsWith("blob:")) {
-    URL.revokeObjectURL(mod.modelUrl);
-  }
   await del(`${MOD_STORE_PREFIX}${id}`);
+  await del(`${MOD_BLOB_PREFIX}${id}`);
   const ids = await getModList();
   await setModList(ids.filter((i) => i !== id));
 }
