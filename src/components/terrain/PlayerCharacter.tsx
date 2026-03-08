@@ -1,7 +1,9 @@
-import { useRef, useEffect, useCallback } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useRef, useEffect, useCallback, Suspense } from "react";
+import { useFrame, useThree, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
+import { useGLTF } from "@react-three/drei";
 import { BiomeConfig, biomeNoise } from "@/lib/biomes";
+import type { ModPlayerOverrides } from "@/lib/mod-types";
 
 interface PlayerCharacterProps {
   biome: BiomeConfig;
@@ -9,6 +11,7 @@ interface PlayerCharacterProps {
   playMode: boolean;
   onPositionUpdate?: (pos: [number, number, number]) => void;
   mobileInput?: { moveX: number; moveZ: number; cameraX: number; cameraY: number };
+  modOverrides?: ModPlayerOverrides | null;
 }
 
 const MOVE_SPEED = 8;
@@ -21,11 +24,11 @@ const TERRAIN_HALF = 38;
 const GRAVITY = -25;
 const JUMP_FORCE = 10;
 
-export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdate, mobileInput }: PlayerCharacterProps) {
+export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdate, mobileInput, modOverrides }: PlayerCharacterProps) {
   const groupRef = useRef<THREE.Group>(null);
   const cameraAngleRef = useRef(0);
   const cameraPitchRef = useRef(0.3);
-  const cameraDistRef = useRef(CAMERA_DISTANCE);
+  const cameraDistRef = useRef(modOverrides?.cameraDistance ?? CAMERA_DISTANCE);
   const keysRef = useRef<Set<string>>(new Set());
   const mouseDownRef = useRef(false);
   const lastMouseRef = useRef({ x: 0, y: 0 });
@@ -108,9 +111,11 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
     const pos = posRef.current;
     const keys = keysRef.current;
 
-    // Sprint check
+    // Sprint check - use mod overrides if available
     const isSprinting = keys.has("shift");
-    const speed = isSprinting ? SPRINT_SPEED : MOVE_SPEED;
+    const baseSpeed = modOverrides?.speed ?? MOVE_SPEED;
+    const sprintSpeed = modOverrides?.sprintSpeed ?? SPRINT_SPEED;
+    const speed = isSprinting ? sprintSpeed : baseSpeed;
 
     // Movement input
     let moveX = 0, moveZ = 0;
@@ -121,7 +126,7 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
 
     // Jump
     if (keys.has(" ") && isGroundedRef.current) {
-      velocityYRef.current = JUMP_FORCE;
+      velocityYRef.current = modOverrides?.jumpForce ?? JUMP_FORCE;
       isGroundedRef.current = false;
     }
 
@@ -158,8 +163,9 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
     // Gravity & terrain collision
     const terrainH = biomeNoise(pos.x, pos.z, biome, seed);
     const groundY = Math.max(terrainH, biome.waterLevel + 0.3);
+    const gravity = modOverrides?.gravity ?? GRAVITY;
 
-    velocityYRef.current += GRAVITY * dt;
+    velocityYRef.current += gravity * dt;
     pos.y += velocityYRef.current * dt;
 
     if (pos.y <= groundY) {
@@ -196,7 +202,7 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
     const camAngle = cameraAngleRef.current;
     const camTargetX = pos.x + Math.sin(camAngle) * Math.cos(pitch) * dist;
     const camTargetZ = pos.z + Math.cos(camAngle) * Math.cos(pitch) * dist;
-    const camTargetY = pos.y + CAMERA_HEIGHT + Math.sin(pitch) * dist * 0.5;
+    const camTargetY = pos.y + (modOverrides?.cameraHeight ?? CAMERA_HEIGHT) + Math.sin(pitch) * dist * 0.5;
 
     camera.position.x += (camTargetX - camera.position.x) * Math.min(dt * CAMERA_LERP, 1);
     camera.position.y += (camTargetY - camera.position.y) * Math.min(dt * CAMERA_LERP, 1);
@@ -212,8 +218,36 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
 
   if (!playMode) return null;
 
+  const scale = modOverrides?.scale ?? 1;
+
   return (
     <group ref={groupRef}>
+      <group scale={[scale, scale, scale]}>
+        {modOverrides?.modelUrl ? (
+          <Suspense fallback={<DefaultPlayerModel />}>
+            <CustomModelLoader url={modOverrides.modelUrl} />
+          </Suspense>
+        ) : (
+          <DefaultPlayerModel />
+        )}
+      </group>
+      {/* Shadow indicator */}
+      <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.4 * scale, 16]} />
+        <meshBasicMaterial color="#000000" transparent opacity={0.3} />
+      </mesh>
+    </group>
+  );
+}
+
+function CustomModelLoader({ url }: { url: string }) {
+  const { scene } = useGLTF(url);
+  return <primitive object={scene.clone()} castShadow />;
+}
+
+function DefaultPlayerModel() {
+  return (
+    <>
       {/* Body */}
       <mesh position={[0, 0.9, 0]} castShadow>
         <boxGeometry args={[0.5, 0.6, 0.3]} />
@@ -261,11 +295,6 @@ export default function PlayerCharacter({ biome, seed, playMode, onPositionUpdat
           <meshStandardMaterial color="#1e40af" roughness={0.8} />
         </mesh>
       </group>
-      {/* Shadow indicator */}
-      <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.4, 16]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.3} />
-      </mesh>
-    </group>
+    </>
   );
 }

@@ -9,9 +9,11 @@ import DayNightToggle from "@/components/terrain/DayNightToggle";
 import AmbientSoundToggle from "@/components/terrain/AmbientSoundToggle";
 import PlayModeUI from "@/components/terrain/PlayModeUI";
 import MobileControls from "@/components/terrain/MobileControls";
+import ModManager from "@/components/terrain/ModManager";
 import { Badge } from "@/components/ui/badge";
 import { Mountain, Compass } from "lucide-react";
 import { BIOMES, BiomeId } from "@/lib/biomes";
+import { useMods } from "@/hooks/use-mods";
 
 interface TerrainInfo {
   type: string;
@@ -33,7 +35,7 @@ const Index = () => {
   const [collectibles, setCollectibles] = useState({ collected: 0, total: 0 });
 
   const biome = BIOMES[currentBiome];
-
+  const { mods, error: modError, installFromZip, installFromFiles, toggleMod, removeMod, playerOverrides, clearError } = useMods();
   const handlePointClick = useCallback(
     (info: TerrainInfo) => {
       if (playMode) return; // Disable terrain clicking in play mode
@@ -107,6 +109,7 @@ const Index = () => {
           onPlayerPositionUpdate={setPlayerPosition}
           onCollect={(collected, total) => setCollectibles({ collected, total })}
           mobileInput={mobileInput}
+          modOverrides={playerOverrides}
         />
       </div>
 
@@ -139,6 +142,15 @@ const Index = () => {
           </div>
         </div>
         <div className="flex items-center gap-2 pointer-events-auto">
+          <ModManager
+            mods={mods}
+            onInstallZip={installFromZip}
+            onInstallFiles={installFromFiles}
+            onToggle={toggleMod}
+            onRemove={removeMod}
+            error={modError}
+            onClearError={clearError}
+          />
           <PlayModeUI playMode={playMode} onToggle={handleTogglePlayMode} playerPosition={playerPosition} collectibles={playMode ? collectibles : undefined} />
           <div className="bg-card/80 backdrop-blur-md rounded-lg px-3 py-2 border border-border/50 flex items-center gap-2">
             <Compass className="h-4 w-4 text-primary animate-spin" style={{ animationDuration: "8s" }} />
