@@ -5,13 +5,12 @@ import TerrainLegend from "@/components/terrain/TerrainLegend";
 import MeasurementPanel from "@/components/terrain/MeasurementPanel";
 import ExportPanel from "@/components/terrain/ExportPanel";
 import BiomeSelector from "@/components/terrain/BiomeSelector";
-import DayNightToggle from "@/components/terrain/DayNightToggle";
 import AmbientSoundToggle from "@/components/terrain/AmbientSoundToggle";
 import PlayModeUI from "@/components/terrain/PlayModeUI";
 import MobileControls from "@/components/terrain/MobileControls";
 import ModManager from "@/components/terrain/ModManager";
-import { Badge } from "@/components/ui/badge";
-import { Mountain, Compass } from "lucide-react";
+import Toolbar from "@/components/terrain/Toolbar";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { BIOMES, BiomeId } from "@/lib/biomes";
 import { useMods } from "@/hooks/use-mods";
 
@@ -34,11 +33,19 @@ const Index = () => {
   const [mobileInput, setMobileInput] = useState({ moveX: 0, moveZ: 0, cameraX: 0, cameraY: 0 });
   const [collectibles, setCollectibles] = useState({ collected: 0, total: 0 });
 
+  // Sheet panels
+  const [showExport, setShowExport] = useState(false);
+  const [showMods, setShowMods] = useState(false);
+  const [showSound, setShowSound] = useState(false);
+
   const biome = BIOMES[currentBiome];
   const { mods, error: modError, installFromZip, installFromFiles, toggleMod, removeMod, playerOverrides, clearError } = useMods();
+
+  const activeMod = mods.find((m) => m.enabled && m.config.type === "player");
+
   const handlePointClick = useCallback(
     (info: TerrainInfo) => {
-      if (playMode) return; // Disable terrain clicking in play mode
+      if (playMode) return;
       if (measureMode) {
         if (!pointA) {
           setPointA(info);
@@ -87,10 +94,7 @@ const Index = () => {
 
   const handleTogglePlayMode = () => {
     setPlayMode((prev) => {
-      if (!prev) {
-        // Entering play mode - disable measure
-        setMeasureMode(false);
-      }
+      if (!prev) setMeasureMode(false);
       return !prev;
     });
   };
@@ -130,66 +134,58 @@ const Index = () => {
         }}
       />
 
-      {/* Top Bar */}
-      <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between pointer-events-none">
-        <div className="flex items-center gap-3 pointer-events-auto">
-          <div className="flex items-center gap-2 bg-card/80 backdrop-blur-md rounded-lg px-4 py-2 border border-border/50">
-            <Mountain className="h-5 w-5 text-primary" />
-            <h1 className="text-sm font-bold text-foreground">TerraCraft 3D</h1>
-            <Badge variant="secondary" className="text-[10px]">
-              {biome.emoji} {biome.name}
-            </Badge>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 pointer-events-auto">
-          <ModManager
-            mods={mods}
-            onInstallZip={installFromZip}
-            onInstallFiles={installFromFiles}
-            onToggle={toggleMod}
-            onRemove={removeMod}
-            error={modError}
-            onClearError={clearError}
+      {/* Top Bar — single unified toolbar */}
+      <div className="absolute top-0 left-0 right-0 z-10 p-3 pointer-events-none">
+        <div className="flex items-center justify-between pointer-events-auto">
+          <Toolbar
+            currentBiome={currentBiome}
+            onBiomeChange={handleBiomeChange}
+            isNight={isNight}
+            onToggleNight={() => setIsNight(!isNight)}
+            playMode={playMode}
+            onTogglePlay={handleTogglePlayMode}
+            measureMode={measureMode}
+            onToggleMeasure={handleToggleMeasure}
+            onOpenExport={() => setShowExport(true)}
+            onOpenMods={() => setShowMods(true)}
+            onOpenSound={() => setShowSound(true)}
+            activeMod={activeMod}
           />
-          <PlayModeUI playMode={playMode} onToggle={handleTogglePlayMode} playerPosition={playerPosition} collectibles={playMode ? collectibles : undefined} />
-          <div className="bg-card/80 backdrop-blur-md rounded-lg px-3 py-2 border border-border/50 flex items-center gap-2">
-            <Compass className="h-4 w-4 text-primary animate-spin" style={{ animationDuration: "8s" }} />
-            <span className="text-[10px] font-mono text-muted-foreground">
-              {playMode ? "🎮 Play Mode" : "360° Interactive"}
-            </span>
-          </div>
         </div>
       </div>
 
-      {/* Right Side Panels - hidden in play mode on mobile for cleaner view */}
-      {!playMode && (
-        <div className="absolute top-20 right-4 z-10 w-64 space-y-3 pointer-events-auto max-h-[calc(100vh-7rem)] overflow-y-auto">
-          <DayNightToggle isNight={isNight} onToggle={() => setIsNight(!isNight)} />
-          <AmbientSoundToggle biome={currentBiome} isNight={isNight} />
-          <BiomeSelector currentBiome={currentBiome} onBiomeChange={handleBiomeChange} seed={seed} onSeedChange={handleSeedChange} />
-          <MeasurementPanel
-            measureMode={measureMode}
-            onToggleMeasure={handleToggleMeasure}
-            onClear={handleClearMeasure}
-            pointA={pointA}
-            pointB={pointB}
+      {/* Play Mode HUD */}
+      {playMode && playerPosition && (
+        <div className="absolute top-14 right-3 z-10 pointer-events-auto">
+          <PlayModeUI
+            playMode={playMode}
+            onToggle={handleTogglePlayMode}
+            playerPosition={playerPosition}
+            collectibles={collectibles}
           />
-          {!measureMode && <InfoPanel info={selectedInfo} />}
-          <ExportPanel biome={biome} seed={seed} />
         </div>
       )}
 
-      {/* Play mode side panel - minimal controls */}
-      {playMode && (
-        <div className="absolute top-20 right-4 z-10 w-64 space-y-3 pointer-events-auto">
-          <DayNightToggle isNight={isNight} onToggle={() => setIsNight(!isNight)} />
-          <AmbientSoundToggle biome={currentBiome} isNight={isNight} />
+      {/* Right Side Panels — only when not in play mode */}
+      {!playMode && (
+        <div className="absolute top-14 right-3 z-10 w-64 space-y-3 pointer-events-auto max-h-[calc(100vh-5rem)] overflow-y-auto">
+          {measureMode || pointA ? (
+            <MeasurementPanel
+              measureMode={measureMode}
+              onToggleMeasure={handleToggleMeasure}
+              onClear={handleClearMeasure}
+              pointA={pointA}
+              pointB={pointB}
+            />
+          ) : (
+            <InfoPanel info={selectedInfo} />
+          )}
         </div>
       )}
 
       {/* Measure mode indicator */}
       {measureMode && !playMode && (
-        <div className="absolute top-20 left-4 z-10 pointer-events-auto">
+        <div className="absolute top-14 left-3 z-10 pointer-events-auto">
           <div className="bg-primary/90 backdrop-blur-md rounded-lg px-4 py-2 border border-primary animate-pulse">
             <p className="text-xs font-semibold text-primary-foreground">
               📐 Measure Mode — Click terrain to place {!pointA ? "Point A" : "Point B"}
@@ -199,18 +195,54 @@ const Index = () => {
       )}
 
       {/* Bottom Legend */}
-      <div className="absolute bottom-4 left-4 right-4 z-10 pointer-events-none">
-        <div className="pointer-events-auto inline-block bg-card/80 backdrop-blur-md rounded-lg px-4 py-2 border border-border/50">
+      <div className="absolute bottom-3 left-3 right-3 z-10 pointer-events-none flex items-end justify-between">
+        <div className="pointer-events-auto bg-card/80 backdrop-blur-md rounded-lg px-3 py-1.5 border border-border/50">
           <TerrainLegend biome={biome} />
+        </div>
+        <div className="pointer-events-auto bg-card/80 backdrop-blur-md rounded-lg px-3 py-1.5 border border-border/50">
+          <p className="text-[10px] text-muted-foreground font-mono">
+            Seed: {seed} • {biome.emoji} {biome.name}
+          </p>
         </div>
       </div>
 
-      <div className="absolute bottom-4 right-4 z-10 pointer-events-auto">
-        <div className="bg-card/80 backdrop-blur-md rounded-lg px-3 py-2 border border-border/50">
-          <p className="text-[10px] text-muted-foreground font-mono">
-            🖨️ 3D Print Ready • Engineering & Student Edition
-          </p>
-        </div>
+      {/* Sound Sheet */}
+      <Sheet open={showSound} onOpenChange={setShowSound}>
+        <SheetContent side="right" className="w-80">
+          <SheetHeader>
+            <SheetTitle className="text-sm">Ambient Sound</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">
+            <AmbientSoundToggle biome={currentBiome} isNight={isNight} />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Export Sheet */}
+      <Sheet open={showExport} onOpenChange={setShowExport}>
+        <SheetContent side="right" className="w-80 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="text-sm">STL Export</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">
+            <ExportPanel biome={biome} seed={seed} />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Mod Manager — uses its own Dialog, we just trigger open */}
+      <div className="hidden">
+        <ModManager
+          mods={mods}
+          onInstallZip={installFromZip}
+          onInstallFiles={installFromFiles}
+          onToggle={toggleMod}
+          onRemove={removeMod}
+          error={modError}
+          onClearError={clearError}
+          externalOpen={showMods}
+          onExternalOpenChange={setShowMods}
+        />
       </div>
     </div>
   );

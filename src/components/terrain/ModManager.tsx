@@ -17,6 +17,8 @@ interface ModManagerProps {
   onRemove: (id: string) => void;
   error: string | null;
   onClearError: () => void;
+  externalOpen?: boolean;
+  onExternalOpenChange?: (open: boolean) => void;
 }
 
 export default function ModManager({
@@ -27,8 +29,12 @@ export default function ModManager({
   onRemove,
   error,
   onClearError,
+  externalOpen,
+  onExternalOpenChange,
 }: ModManagerProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = externalOpen ?? internalOpen;
+  const setOpen = onExternalOpenChange ?? setInternalOpen;
   const [uploading, setUploading] = useState(false);
   const [selectedMod, setSelectedMod] = useState<InstalledMod | null>(null);
   const zipInputRef = useRef<HTMLInputElement>(null);
