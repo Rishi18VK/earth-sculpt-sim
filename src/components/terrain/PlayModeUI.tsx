@@ -5,9 +5,10 @@ interface PlayModeUIProps {
   playMode: boolean;
   onToggle: () => void;
   playerPosition: [number, number, number] | null;
+  collectibles?: { collected: number; total: number };
 }
 
-export default function PlayModeUI({ playMode, onToggle, playerPosition }: PlayModeUIProps) {
+export default function PlayModeUI({ playMode, onToggle, playerPosition, collectibles }: PlayModeUIProps) {
   return (
     <>
       {/* Toggle button */}
@@ -44,6 +45,27 @@ export default function PlayModeUI({ playMode, onToggle, playerPosition }: PlayM
           <p className="text-[9px] text-muted-foreground mt-1">
             📏 Elevation: {playerPosition[1]}m
           </p>
+          {collectibles && (
+            <div className="mt-1.5 pt-1.5 border-t border-border/30">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono text-muted-foreground">💎 Collectibles</span>
+                <span className="text-[10px] font-mono font-bold text-primary">
+                  {collectibles.collected}/{collectibles.total}
+                </span>
+              </div>
+              {collectibles.total > 0 && (
+                <div className="mt-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all duration-300"
+                    style={{ width: `${(collectibles.collected / collectibles.total) * 100}%` }}
+                  />
+                </div>
+              )}
+              {collectibles.collected === collectibles.total && collectibles.total > 0 && (
+                <p className="text-[9px] text-primary font-semibold mt-0.5">🎉 All collected!</p>
+              )}
+            </div>
+          )}
           <p className="text-[9px] text-muted-foreground">
             🖥️ WASD + Shift(Sprint) + Space(Jump)
           </p>

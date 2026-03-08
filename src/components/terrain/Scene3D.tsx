@@ -7,6 +7,7 @@ import MiniMap from "./MiniMap";
 import BiomeObjects from "./BiomeObjects";
 import WeatherEffects from "./WeatherEffects";
 import PlayerCharacter from "./PlayerCharacter";
+import Collectibles from "./Collectibles";
 import { Suspense, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -27,6 +28,7 @@ interface Scene3DProps {
   isNight?: boolean;
   playMode?: boolean;
   onPlayerPositionUpdate?: (pos: [number, number, number]) => void;
+  onCollect?: (collected: number, total: number) => void;
   mobileInput?: { moveX: number; moveZ: number; cameraX: number; cameraY: number };
 }
 
@@ -190,7 +192,7 @@ function AnimatedStars({ isNight }: { isNight: boolean }) {
   );
 }
 
-export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0, isNight = false, playMode = false, onPlayerPositionUpdate, mobileInput }: Scene3DProps) {
+export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0, isNight = false, playMode = false, onPlayerPositionUpdate, onCollect, mobileInput }: Scene3DProps) {
   const [playerPos, setPlayerPos] = useState<[number, number, number] | null>(null);
 
   const handlePlayerPosition = useCallback((pos: [number, number, number]) => {
@@ -217,6 +219,7 @@ export default function Scene3D({ onPointClick, pointA, pointB, biome, seed = 0,
         <BiomeObjects biome={biome} seed={seed} />
         <WeatherEffects biome={biome} />
         <PlayerCharacter biome={biome} seed={seed} playMode={playMode} onPositionUpdate={handlePlayerPosition} mobileInput={mobileInput} />
+        <Collectibles biome={biome} seed={seed} playerPosition={playerPos} playMode={playMode} onCollect={onCollect} />
         <MeasurementMarkers pointA={pointA || null} pointB={pointB || null} />
         <MiniMap biome={biome} seed={seed} playerPosition={playMode ? playerPos : null} />
       </Suspense>

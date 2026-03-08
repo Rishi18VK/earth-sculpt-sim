@@ -30,6 +30,7 @@ const Index = () => {
   const [playMode, setPlayMode] = useState(false);
   const [playerPosition, setPlayerPosition] = useState<[number, number, number] | null>(null);
   const [mobileInput, setMobileInput] = useState({ moveX: 0, moveZ: 0, cameraX: 0, cameraY: 0 });
+  const [collectibles, setCollectibles] = useState({ collected: 0, total: 0 });
 
   const biome = BIOMES[currentBiome];
 
@@ -104,6 +105,7 @@ const Index = () => {
           isNight={isNight}
           playMode={playMode}
           onPlayerPositionUpdate={setPlayerPosition}
+          onCollect={(collected, total) => setCollectibles({ collected, total })}
           mobileInput={mobileInput}
         />
       </div>
@@ -137,7 +139,7 @@ const Index = () => {
           </div>
         </div>
         <div className="flex items-center gap-2 pointer-events-auto">
-          <PlayModeUI playMode={playMode} onToggle={handleTogglePlayMode} playerPosition={playerPosition} />
+          <PlayModeUI playMode={playMode} onToggle={handleTogglePlayMode} playerPosition={playerPosition} collectibles={playMode ? collectibles : undefined} />
           <div className="bg-card/80 backdrop-blur-md rounded-lg px-3 py-2 border border-border/50 flex items-center gap-2">
             <Compass className="h-4 w-4 text-primary animate-spin" style={{ animationDuration: "8s" }} />
             <span className="text-[10px] font-mono text-muted-foreground">
