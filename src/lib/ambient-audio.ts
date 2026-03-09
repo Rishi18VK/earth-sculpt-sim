@@ -1,6 +1,6 @@
 // Procedural ambient audio engine using Web Audio API
 
-type BiomeAudioType = "earth" | "volcanic" | "desert" | "arctic" | "tropical";
+type BiomeAudioType = "earth" | "volcanic" | "desert" | "arctic" | "tropical" | "dudhsagar";
 
 class AmbientAudioEngine {
   private ctx: AudioContext | null = null;
