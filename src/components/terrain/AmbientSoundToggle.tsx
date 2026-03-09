@@ -10,6 +10,7 @@ const BIOME_SOUND_LABELS: Record<BiomeId, { day: string; night: string }> = {
   volcanic: { day: "🌋 Rumbling", night: "🔥 Glowing Embers" },
   desert: { day: "🔥 Fire Crackling", night: "🐺 Desert Night" },
   tropical: { day: "🦗 Insects & Nature", night: "🐸 Frogs & Crickets" },
+  dudhsagar: { day: "🏞️ Waterfall & Jungle", night: "🌙 Night Falls & Frogs" },
 };
 
 const BAR_COUNT = 5;
