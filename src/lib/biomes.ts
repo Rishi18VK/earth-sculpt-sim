@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-export type BiomeId = "earth" | "volcanic" | "desert" | "arctic" | "tropical";
+export type BiomeId = "earth" | "volcanic" | "desert" | "arctic" | "tropical" | "dudhsagar";
 
 export interface BiomeConfig {
   id: BiomeId;
