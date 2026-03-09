@@ -91,7 +91,7 @@ export default function WeatherEffects({ biome, modOverrides }: WeatherEffectsPr
   if (!config) return null;
 
   return (
-    <points ref={pointsRef}>
+    <points ref={pointsRef} key={`weather-${particleCount}-${biome.id}`}>
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
