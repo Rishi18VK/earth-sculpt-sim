@@ -41,7 +41,7 @@ interface ToolbarProps {
   activeMod?: InstalledMod;
 }
 
-const biomeOrder: BiomeId[] = ["earth", "volcanic", "desert", "arctic", "tropical"];
+const biomeOrder: BiomeId[] = ["earth", "volcanic", "desert", "arctic", "tropical", "dudhsagar"];
 
 export default function Toolbar({
   currentBiome,
