@@ -8,6 +8,7 @@ import BiomeObjects from "./BiomeObjects";
 import WeatherEffects from "./WeatherEffects";
 import PlayerCharacter from "./PlayerCharacter";
 import Collectibles from "./Collectibles";
+import DudhsagarEnvironment from "./DudhsagarEnvironment";
 import { Suspense, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
