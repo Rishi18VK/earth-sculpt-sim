@@ -231,6 +231,9 @@ export default function Scene3D({
         <TerrainMesh onPointClick={onPointClick} biome={biome} seed={seed} colorOverrides={terrainColorOverrides} />
         <BiomeObjects biome={biome} seed={seed} effectOverrides={biomeEffectOverrides} />
         <WeatherEffects biome={biome} modOverrides={weatherOverrides} />
+        {biome.id === "dudhsagar" && (
+          <DudhsagarEnvironment biome={biome} seed={seed} playerPosition={playerPos} />
+        )}
         <PlayerCharacter biome={biome} seed={seed} playMode={playMode} onPositionUpdate={handlePlayerPosition} mobileInput={mobileInput} modOverrides={modOverrides} cameraOverrides={cameraOverrides} />
         <Collectibles biome={biome} seed={seed} playerPosition={playerPos} playMode={playMode} onCollect={onCollect} />
         <MeasurementMarkers pointA={pointA || null} pointB={pointB || null} />
