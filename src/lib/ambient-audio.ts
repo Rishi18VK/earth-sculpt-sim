@@ -547,6 +547,7 @@ class AmbientAudioEngine {
         case "volcanic": this.createVolcanicNight(ctx, out); break;
         case "desert": this.createDesertNight(ctx, out); break;
         case "tropical": this.createTropicalNight(ctx, out); break;
+        case "dudhsagar": this.createDudhsagarNight(ctx, out); break;
       }
     } else {
       switch (biome) {
@@ -555,6 +556,7 @@ class AmbientAudioEngine {
         case "volcanic": this.createVolcanic(ctx, out); break;
         case "desert": this.createDesertFire(ctx, out); break;
         case "tropical": this.createTropicalInsects(ctx, out); break;
+        case "dudhsagar": this.createDudhsagarDay(ctx, out); break;
       }
     }
 
