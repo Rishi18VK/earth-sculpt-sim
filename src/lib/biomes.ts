@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-export type BiomeId = "earth" | "volcanic" | "desert" | "arctic" | "tropical";
+export type BiomeId = "earth" | "volcanic" | "desert" | "arctic" | "tropical" | "dudhsagar" | "dudhsagar";
 
 export interface BiomeConfig {
   id: BiomeId;
@@ -175,6 +175,36 @@ export const BIOMES: Record<BiomeId, BiomeConfig> = {
     skyRayleigh: 3,
     ambientIntensity: 0.5,
     sunPosition: [100, 30, 80],
+  },
+  dudhsagar: {
+    id: "dudhsagar",
+    name: "Dudhsagar Falls",
+    emoji: "🏞️",
+    description: "Iconic four-tier waterfall in the Western Ghats, Goa — dense jungle valley with a railway bridge",
+    noiseScale: [0.15, 0.4, 1.0, 2.2],
+    noiseAmplitude: [4, 2.5, 1.2, 0.5],
+    noiseOffset: [42, 38, 45, 40],
+    colorStops: [
+      { threshold: -2.0, hsl: [0.52, 0.7, 0.2], label: "Deep Pool", hex: "#0f4a4a" },
+      { threshold: -0.5, hsl: [0.5, 0.65, 0.35], label: "River Water", hex: "#1a7a6a" },
+      { threshold: 0.3, hsl: [0.08, 0.4, 0.5], label: "Wet Rock", hex: "#8a7055" },
+      { threshold: 1.5, hsl: [0.3, 0.65, 0.3], label: "Jungle Floor", hex: "#2a7a20" },
+      { threshold: 3.0, hsl: [0.33, 0.55, 0.25], label: "Dense Canopy", hex: "#1a6018" },
+      { threshold: 5.0, hsl: [0.06, 0.25, 0.4], label: "Rocky Cliff", hex: "#7a6a50" },
+      { threshold: Infinity, hsl: [0.08, 0.15, 0.55], label: "Mountain Peak", hex: "#9a8a70" },
+    ],
+    waterColor: "#1a8a6a",
+    waterOpacity: 0.55,
+    waterLevel: -0.8,
+    fogColor: "#7aaa8a",
+    fogNear: 25,
+    fogFar: 80,
+    skyInclination: 0.5,
+    skyAzimuth: 0.2,
+    skyTurbidity: 5,
+    skyRayleigh: 2.5,
+    ambientIntensity: 0.45,
+    sunPosition: [80, 25, 60],
   },
 };
 

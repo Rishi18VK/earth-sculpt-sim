@@ -12,7 +12,7 @@ interface BiomeSelectorProps {
   onSeedChange: (seed: number) => void;
 }
 
-const biomeOrder: BiomeId[] = ["earth", "volcanic", "desert", "arctic", "tropical"];
+const biomeOrder: BiomeId[] = ["earth", "volcanic", "desert", "arctic", "tropical", "dudhsagar"];
 
 export default function BiomeSelector({ currentBiome, onBiomeChange, seed, onSeedChange }: BiomeSelectorProps) {
   return (

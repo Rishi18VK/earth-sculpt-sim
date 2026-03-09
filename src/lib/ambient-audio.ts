@@ -1,6 +1,6 @@
 // Procedural ambient audio engine using Web Audio API
 
-type BiomeAudioType = "earth" | "volcanic" | "desert" | "arctic" | "tropical";
+type BiomeAudioType = "earth" | "volcanic" | "desert" | "arctic" | "tropical" | "dudhsagar";
 
 class AmbientAudioEngine {
   private ctx: AudioContext | null = null;
@@ -532,6 +532,136 @@ class AmbientAudioEngine {
     this.nodes.push(noise, bp, noiseGain);
   }
 
+  // ========== DUDHSAGAR SOUNDS ==========
+
+  private createDudhsagarDay(ctx: AudioContext, out: GainNode) {
+    // Heavy waterfall rush — layered white noise with low rumble
+    const waterfall = ctx.createBufferSource();
+    waterfall.buffer = this.makeNoise(ctx);
+    waterfall.loop = true;
+
+    // Low-pass for deep roar
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 1200;
+    lp.Q.value = 0.5;
+
+    // Band-pass for water texture
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 600;
+    bp.Q.value = 0.3;
+
+    const waterGain = ctx.createGain();
+    waterGain.gain.value = 0.55;
+
+    waterfall.connect(lp);
+    lp.connect(bp);
+    bp.connect(waterGain);
+    waterGain.connect(out);
+    waterfall.start();
+
+    // Deep rumble for waterfall impact
+    const rumble = ctx.createOscillator();
+    rumble.type = "sine";
+    rumble.frequency.value = 40;
+    const rumbleLfo = ctx.createOscillator();
+    rumbleLfo.type = "sine";
+    rumbleLfo.frequency.value = 0.1;
+    const rumbleLfoGain = ctx.createGain();
+    rumbleLfoGain.gain.value = 8;
+    rumbleLfo.connect(rumbleLfoGain);
+    rumbleLfoGain.connect(rumble.frequency);
+    rumbleLfo.start();
+    const rumbleGain = ctx.createGain();
+    rumbleGain.gain.value = 0.12;
+    rumble.connect(rumbleGain);
+    rumbleGain.connect(out);
+    rumble.start();
+
+    // Birds / jungle ambience — high-frequency trills
+    const birdFreqs = [3200, 4500, 5800];
+    birdFreqs.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = f;
+      const am = ctx.createOscillator();
+      am.type = "sine";
+      am.frequency.value = 4 + i * 3;
+      const amGain = ctx.createGain();
+      amGain.gain.value = 0.4;
+      am.connect(amGain);
+      const modGain = ctx.createGain();
+      modGain.gain.value = 0;
+      amGain.connect(modGain.gain);
+      osc.connect(modGain);
+      modGain.connect(out);
+      osc.start();
+      am.start();
+      this.nodes.push(osc, am, amGain, modGain);
+    });
+
+    // Light breeze
+    const breeze = ctx.createBufferSource();
+    breeze.buffer = this.makeNoise(ctx);
+    breeze.loop = true;
+    const breezeBp = ctx.createBiquadFilter();
+    breezeBp.type = "bandpass";
+    breezeBp.frequency.value = 350;
+    breezeBp.Q.value = 0.4;
+    const breezeGain = ctx.createGain();
+    breezeGain.gain.value = 0.15;
+    breeze.connect(breezeBp);
+    breezeBp.connect(breezeGain);
+    breezeGain.connect(out);
+    breeze.start();
+
+    this.nodes.push(waterfall, lp, bp, waterGain, rumble, rumbleLfo, rumbleLfoGain, rumbleGain, breeze, breezeBp, breezeGain);
+  }
+
+  private createDudhsagarNight(ctx: AudioContext, out: GainNode) {
+    // Softer waterfall at night
+    const waterfall = ctx.createBufferSource();
+    waterfall.buffer = this.makeNoise(ctx);
+    waterfall.loop = true;
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 800;
+    const waterGain = ctx.createGain();
+    waterGain.gain.value = 0.35;
+    waterfall.connect(lp);
+    lp.connect(waterGain);
+    waterGain.connect(out);
+    waterfall.start();
+
+    // Crickets
+    this.createNightCrickets(ctx, out);
+
+    // Frogs
+    const frogFreqs = [700, 900];
+    frogFreqs.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = f;
+      const am = ctx.createOscillator();
+      am.type = "square";
+      am.frequency.value = 2 + i;
+      const amGain = ctx.createGain();
+      amGain.gain.value = 0.3;
+      am.connect(amGain);
+      const modGain = ctx.createGain();
+      modGain.gain.value = 0;
+      amGain.connect(modGain.gain);
+      osc.connect(modGain);
+      modGain.connect(out);
+      osc.start();
+      am.start();
+      this.nodes.push(osc, am, amGain, modGain);
+    });
+
+    this.nodes.push(waterfall, lp, waterGain);
+  }
+
   // --- Public API ---
 
   play(biome: BiomeAudioType, isNight: boolean = false) {
@@ -547,6 +677,7 @@ class AmbientAudioEngine {
         case "volcanic": this.createVolcanicNight(ctx, out); break;
         case "desert": this.createDesertNight(ctx, out); break;
         case "tropical": this.createTropicalNight(ctx, out); break;
+        case "dudhsagar": this.createDudhsagarNight(ctx, out); break;
       }
     } else {
       switch (biome) {
@@ -555,6 +686,7 @@ class AmbientAudioEngine {
         case "volcanic": this.createVolcanic(ctx, out); break;
         case "desert": this.createDesertFire(ctx, out); break;
         case "tropical": this.createTropicalInsects(ctx, out); break;
+        case "dudhsagar": this.createDudhsagarDay(ctx, out); break;
       }
     }
 

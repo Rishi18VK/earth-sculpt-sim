@@ -23,6 +23,8 @@ function getWeatherConfig(biomeId: BiomeId) {
       return { color: "#444444", size: 0.12, speed: 0.6, drift: 0.5, opacity: 0.6, direction: [0.2, -0.8, 0.1] as [number, number, number], particleCount: DEFAULT_PARTICLE_COUNT };
     case "tropical":
       return { color: "#aaccff", size: 0.04, speed: 2.5, drift: 0.1, opacity: 0.4, direction: [0.1, -1, 0.05] as [number, number, number], particleCount: DEFAULT_PARTICLE_COUNT };
+    case "dudhsagar":
+      return { color: "#cceeff", size: 0.06, speed: 0.8, drift: 0.6, opacity: 0.35, direction: [0.2, -0.4, 0.1] as [number, number, number], particleCount: 2000 };
     default:
       return null;
   }
@@ -89,7 +91,7 @@ export default function WeatherEffects({ biome, modOverrides }: WeatherEffectsPr
   if (!config) return null;
 
   return (
-    <points ref={pointsRef}>
+    <points ref={pointsRef} key={`weather-${particleCount}-${biome.id}`}>
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"

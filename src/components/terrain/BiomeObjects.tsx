@@ -121,6 +121,7 @@ const biomeObjects: Record<BiomeId, { types: ObjectType[]; count: number; minHei
   desert: { types: ["cactus", "rock"], count: 35, minHeight: 0.0, maxHeight: 2.5, rockColor: "#9a7a5a" },
   arctic: { types: ["iceCrystal", "rock"], count: 40, minHeight: 0.2, maxHeight: 3.0, rockColor: "#8a9aaa" },
   tropical: { types: ["palmTree", "rock"], count: 50, minHeight: 0.3, maxHeight: 2.0, rockColor: "#6a8a6a" },
+  dudhsagar: { types: ["palmTree", "pineTree", "rock"], count: 30, minHeight: 0.5, maxHeight: 3.5, rockColor: "#6a6050" },
 };
 
 export default function BiomeObjects({ biome, seed = 0, effectOverrides }: BiomeObjectsProps) {
