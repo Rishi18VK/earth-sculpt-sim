@@ -1,7 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Sky, Stars, PerspectiveCamera } from "@react-three/drei";
+import { OrbitControls, Sky, Stars, PerspectiveCamera, Environment } from "@react-three/drei";
 import TerrainMesh from "./TerrainMesh";
+import RealisticWater from "./RealisticWater";
 import MeasurementMarkers from "./MeasurementMarkers";
 import MiniMap from "./MiniMap";
 import BiomeObjects from "./BiomeObjects";
@@ -9,10 +10,12 @@ import WeatherEffects from "./WeatherEffects";
 import PlayerCharacter from "./PlayerCharacter";
 import Collectibles from "./Collectibles";
 import DudhsagarEnvironment from "./DudhsagarEnvironment";
+import { CloudLayer, VolumetricFog, AmbientParticles, GodRays } from "./AtmosphereEffects";
 import { Suspense, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { BiomeConfig } from "@/lib/biomes";
+import { getQualitySettings } from "@/lib/terrain-quality";
 import type { ModPlayerOverrides, ModWeatherOverrides, ModTerrainColorOverrides, ModBiomeEffectOverrides, ModCameraOverrides } from "@/lib/mod-types";
 
 interface MeasurementPoint {
@@ -57,20 +60,22 @@ function darkenColor(hex: string, factor: number): string {
   return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }
 
-function AnimatedLights({ biome, isNight, ambientMultiplier }: { biome: BiomeConfig; isNight: boolean; ambientMultiplier: number }) {
+// ── Animated Lighting ──
+function AnimatedLights({ biome, isNight, ambientMultiplier, shadowMapSize }: { biome: BiomeConfig; isNight: boolean; ambientMultiplier: number; shadowMapSize: number }) {
   const ambientRef = useRef<THREE.AmbientLight>(null);
   const dirRef = useRef<THREE.DirectionalLight>(null);
+  const fillRef = useRef<THREE.DirectionalLight>(null);
   const pointRef = useRef<THREE.PointLight>(null);
   const tRef = useRef(isNight ? 1 : 0);
 
-  const dayAmbientColor = new THREE.Color("#ffffff");
-  const nightAmbientColor = new THREE.Color("#4466aa");
-  const dayDirColor = new THREE.Color("#ffffff");
-  const nightDirColor = new THREE.Color("#8899cc");
+  const dayAmbientColor = new THREE.Color("#fff8f0");
+  const nightAmbientColor = new THREE.Color("#2a3355");
+  const dayDirColor = new THREE.Color("#fff5e6");
+  const nightDirColor = new THREE.Color("#667799");
   const dayPointColor = new THREE.Color("#88ccff");
-  const nightPointColor = new THREE.Color("#6688bb");
-  const dayDirPos = new THREE.Vector3(20, 30, 10);
-  const nightDirPos = new THREE.Vector3(-20, 20, -10);
+  const nightPointColor = new THREE.Color("#446688");
+  const dayDirPos = new THREE.Vector3(25, 35, 15);
+  const nightDirPos = new THREE.Vector3(-20, 15, -10);
 
   useFrame((_, delta) => {
     const target = isNight ? 1 : 0;
@@ -78,16 +83,19 @@ function AnimatedLights({ biome, isNight, ambientMultiplier }: { biome: BiomeCon
     const t = tRef.current;
 
     if (ambientRef.current) {
-      ambientRef.current.intensity = lerp(biome.ambientIntensity * ambientMultiplier, biome.ambientIntensity * 0.15 * ambientMultiplier, t);
+      ambientRef.current.intensity = lerp(biome.ambientIntensity * ambientMultiplier, biome.ambientIntensity * 0.12 * ambientMultiplier, t);
       lerpColor(dayAmbientColor, nightAmbientColor, t, ambientRef.current.color);
     }
     if (dirRef.current) {
-      dirRef.current.intensity = lerp(1.2, 0.2, t);
+      dirRef.current.intensity = lerp(1.4, 0.15, t);
       lerpColor(dayDirColor, nightDirColor, t, dirRef.current.color);
       dirRef.current.position.lerpVectors(dayDirPos, nightDirPos, t);
     }
+    if (fillRef.current) {
+      fillRef.current.intensity = lerp(0.3, 0.05, t);
+    }
     if (pointRef.current) {
-      pointRef.current.intensity = lerp(0.3, 0.1, t);
+      pointRef.current.intensity = lerp(0.25, 0.08, t);
       lerpColor(dayPointColor, nightPointColor, t, pointRef.current.color);
     }
   });
@@ -95,25 +103,39 @@ function AnimatedLights({ biome, isNight, ambientMultiplier }: { biome: BiomeCon
   return (
     <>
       <ambientLight ref={ambientRef} intensity={biome.ambientIntensity * ambientMultiplier} />
+      {/* Key light */}
       <directionalLight
         ref={dirRef}
-        position={[20, 30, 10]}
-        intensity={1.2}
+        position={[25, 35, 15]}
+        intensity={1.4}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-far={100}
+        shadow-mapSize-width={shadowMapSize}
+        shadow-mapSize-height={shadowMapSize}
+        shadow-camera-far={120}
         shadow-camera-near={0.1}
         shadow-camera-left={-50}
         shadow-camera-right={50}
         shadow-camera-top={50}
         shadow-camera-bottom={-50}
+        shadow-bias={-0.0005}
+        shadow-normalBias={0.02}
       />
-      <pointLight ref={pointRef} position={[-20, 15, -20]} intensity={0.3} color="#88ccff" />
+      {/* Fill light from opposite side */}
+      <directionalLight
+        ref={fillRef}
+        position={[-20, 15, -15]}
+        intensity={0.3}
+        color="#aabbdd"
+      />
+      {/* Rim/back light */}
+      <pointLight ref={pointRef} position={[-25, 20, -25]} intensity={0.25} color="#88ccff" />
+      {/* Bounce light from ground */}
+      <hemisphereLight args={["#b1e1ff", "#886644", 0.25]} />
     </>
   );
 }
 
+// ── Animated Fog ──
 function AnimatedFog({ biome, isNight, fogColorOverride }: { biome: BiomeConfig; isNight: boolean; fogColorOverride?: string }) {
   const fogRef = useRef<THREE.Fog>(null);
   const tRef = useRef(isNight ? 1 : 0);
@@ -137,6 +159,7 @@ function AnimatedFog({ biome, isNight, fogColorOverride }: { biome: BiomeConfig;
   return <fog ref={fogRef} attach="fog" args={[baseFogColor, biome.fogNear, biome.fogFar]} />;
 }
 
+// ── Background ──
 function AnimatedBackground({ isNight }: { isNight: boolean }) {
   const ref = useRef<THREE.Color>(null);
   const tRef = useRef(isNight ? 1 : 0);
@@ -154,6 +177,7 @@ function AnimatedBackground({ isNight }: { isNight: boolean }) {
   return <color ref={ref} attach="background" args={["#0a1628"]} />;
 }
 
+// ── Sky ──
 function AnimatedSky({ biome, isNight }: { biome: BiomeConfig; isNight: boolean }) {
   const ref = useRef<any>(null);
   const tRef = useRef(isNight ? 1 : 0);
@@ -180,6 +204,7 @@ function AnimatedSky({ biome, isNight }: { biome: BiomeConfig; isNight: boolean 
   );
 }
 
+// ── Stars ──
 function AnimatedStars({ isNight }: { isNight: boolean }) {
   const ref = useRef<THREE.Points>(null);
   const tRef = useRef(isNight ? 1 : 0);
@@ -203,6 +228,7 @@ export default function Scene3D({
   weatherOverrides, terrainColorOverrides, biomeEffectOverrides, cameraOverrides,
 }: Scene3DProps) {
   const [playerPos, setPlayerPos] = useState<[number, number, number] | null>(null);
+  const quality = useMemo(() => getQualitySettings(), []);
 
   const handlePlayerPosition = useCallback((pos: [number, number, number]) => {
     setPlayerPos(pos);
@@ -216,28 +242,44 @@ export default function Scene3D({
   return (
     <Canvas
       shadows
-      gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
-      dpr={[1, 2]}
+      gl={{ antialias: true, alpha: false, powerPreference: "high-performance", toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.1 }}
+      dpr={quality.dpr}
       style={{ width: "100%", height: "100%" }}
     >
       <PerspectiveCamera makeDefault position={[25, 20, 25]} fov={cameraFov} near={0.1} far={500} />
       <AnimatedBackground isNight={isNight} />
 
       <Suspense fallback={null}>
-        <AnimatedLights biome={biome} isNight={isNight} ambientMultiplier={ambientMultiplier} />
+        <AnimatedLights biome={biome} isNight={isNight} ambientMultiplier={ambientMultiplier} shadowMapSize={quality.shadowMapSize} />
         <AnimatedSky biome={biome} isNight={isNight} />
         <AnimatedStars isNight={isNight} />
         <AnimatedFog biome={biome} isNight={isNight} fogColorOverride={fogColorOverride} />
+
+        {/* Atmosphere */}
+        <CloudLayer isNight={isNight} />
+        <VolumetricFog biome={biome} isNight={isNight} />
+        <AmbientParticles isNight={isNight} />
+        {quality.enableGodRays && <GodRays sunPosition={biome.sunPosition} isNight={isNight} />}
+
+        {/* Terrain */}
         <TerrainMesh onPointClick={onPointClick} biome={biome} seed={seed} colorOverrides={terrainColorOverrides} />
+        <RealisticWater biome={biome} colorOverrides={terrainColorOverrides} />
+
+        {/* Objects */}
         <BiomeObjects biome={biome} seed={seed} effectOverrides={biomeEffectOverrides} />
         <WeatherEffects biome={biome} modOverrides={weatherOverrides} />
+
         {biome.id === "dudhsagar" && (
           <DudhsagarEnvironment biome={biome} seed={seed} playerPosition={playerPos} />
         )}
+
         <PlayerCharacter biome={biome} seed={seed} playMode={playMode} onPositionUpdate={handlePlayerPosition} mobileInput={mobileInput} modOverrides={modOverrides} cameraOverrides={cameraOverrides} />
         <Collectibles biome={biome} seed={seed} playerPosition={playerPos} playMode={playMode} onCollect={onCollect} />
         <MeasurementMarkers pointA={pointA || null} pointB={pointB || null} />
         <MiniMap biome={biome} seed={seed} playerPosition={playMode ? playerPos : null} />
+
+        {/* HDR environment for reflections */}
+        <Environment preset={isNight ? "night" : "sunset"} background={false} />
       </Suspense>
 
       {!playMode && (
