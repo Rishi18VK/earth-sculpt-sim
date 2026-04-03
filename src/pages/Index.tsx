@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { BIOMES, BiomeId } from "@/lib/biomes";
 import { useMods } from "@/hooks/use-mods";
 import { RealEarthLocation, locationToBiome } from "@/lib/real-earth-locations";
+import { sfxEngine } from "@/lib/sfx-engine";
 
 interface TerrainInfo {
   type: string;
