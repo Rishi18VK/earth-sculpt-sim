@@ -10,9 +10,11 @@ import PlayModeUI from "@/components/terrain/PlayModeUI";
 import MobileControls from "@/components/terrain/MobileControls";
 import ModManager from "@/components/terrain/ModManager";
 import Toolbar from "@/components/terrain/Toolbar";
+import RealEarthPanel from "@/components/terrain/RealEarthPanel";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { BIOMES, BiomeId } from "@/lib/biomes";
 import { useMods } from "@/hooks/use-mods";
+import { RealEarthLocation, locationToBiome } from "@/lib/real-earth-locations";
 
 interface TerrainInfo {
   type: string;
