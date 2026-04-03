@@ -39,6 +39,10 @@ interface ToolbarProps {
   onOpenSound: () => void;
   // Mod info
   activeMod?: InstalledMod;
+  // Real Earth Mode
+  realEarthMode: boolean;
+  onToggleRealEarth: () => void;
+  realEarthLocationName?: string;
 }
 
 const biomeOrder: BiomeId[] = ["earth", "volcanic", "desert", "arctic", "tropical", "dudhsagar"];
