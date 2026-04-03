@@ -176,6 +176,12 @@ const Index = () => {
               }
             }}
             realEarthLocationName={realEarthLocation?.name}
+            sfxEnabled={sfxEnabled}
+            onToggleSfx={() => {
+              const next = !sfxEnabled;
+              setSfxEnabled(next);
+              sfxEngine.setEnabled(next);
+            }}
           />
         </div>
       </div>
