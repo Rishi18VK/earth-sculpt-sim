@@ -281,6 +281,7 @@ const Index = () => {
                 setPointB(null);
                 setMeasureMode(false);
                 setShowRealEarth(false);
+                sfxEngine.playBiomeSwitch();
               }}
               onClose={() => setShowRealEarth(false)}
             />
