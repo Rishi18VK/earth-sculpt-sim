@@ -224,7 +224,9 @@ const Index = () => {
         </div>
         <div className="pointer-events-auto bg-card/80 backdrop-blur-md rounded-lg px-3 py-1.5 border border-border/50">
           <p className="text-[10px] text-muted-foreground font-mono">
-            Seed: {seed} • {biome.emoji} {biome.name}
+            {realEarthMode && realEarthLocation
+              ? `🌎 ${realEarthLocation.name}, ${realEarthLocation.region} • ${realEarthLocation.lat.toFixed(1)}°, ${realEarthLocation.lng.toFixed(1)}°`
+              : `Seed: ${seed} • ${biome.emoji} ${biome.name}`}
           </p>
         </div>
       </div>
