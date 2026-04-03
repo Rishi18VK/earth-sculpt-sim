@@ -60,6 +60,9 @@ export default function Toolbar({
   onOpenMods,
   onOpenSound,
   activeMod,
+  realEarthMode,
+  onToggleRealEarth,
+  realEarthLocationName,
 }: ToolbarProps) {
   const biome = BIOMES[currentBiome];
 
