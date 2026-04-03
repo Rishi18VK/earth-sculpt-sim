@@ -253,6 +253,30 @@ const Index = () => {
         </SheetContent>
       </Sheet>
 
+      {/* Real Earth Panel */}
+      <Sheet open={showRealEarth} onOpenChange={setShowRealEarth}>
+        <SheetContent side="right" className="w-80 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="text-sm flex items-center gap-1.5">🌎 Real Earth Mode</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">
+            <RealEarthPanel
+              activeLocation={realEarthLocation}
+              onSelectLocation={(loc) => {
+                setRealEarthLocation(loc);
+                setRealEarthMode(true);
+                setSelectedInfo(null);
+                setPointA(null);
+                setPointB(null);
+                setMeasureMode(false);
+                setShowRealEarth(false);
+              }}
+              onClose={() => setShowRealEarth(false)}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* Mod Manager — uses its own Dialog, we just trigger open */}
       <div className="sr-only">
         <ModManager
