@@ -147,6 +147,17 @@ export default function Toolbar({
         <span className="hidden sm:inline">Sound</span>
       </Button>
 
+      {/* SFX Toggle */}
+      <Button
+        variant="outline"
+        size="sm"
+        className={`h-8 text-xs gap-1.5 bg-card/90 backdrop-blur-md border-border/50 ${sfxEnabled ? "" : "opacity-60"}`}
+        onClick={onToggleSfx}
+        title={sfxEnabled ? "Sound effects ON" : "Sound effects OFF"}
+      >
+        {sfxEnabled ? <Sparkles className="h-3.5 w-3.5 text-amber-400" /> : <VolumeX className="h-3.5 w-3.5" />}
+      </Button>
+
       {/* Divider */}
       <div className="w-px h-5 bg-border/50 mx-0.5 hidden sm:block" />
 
