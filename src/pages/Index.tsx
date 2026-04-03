@@ -92,6 +92,7 @@ const Index = () => {
     setPointA(null);
     setPointB(null);
     setMeasureMode(false);
+    sfxEngine.playBiomeSwitch();
   };
 
   const handleSeedChange = (newSeed: number) => {
