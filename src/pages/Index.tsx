@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import Scene3D from "@/components/terrain/Scene3D";
 import InfoPanel from "@/components/terrain/InfoPanel";
 import TerrainLegend from "@/components/terrain/TerrainLegend";
