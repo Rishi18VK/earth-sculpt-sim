@@ -106,6 +106,17 @@ export default function Toolbar({
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Real Earth Mode Toggle */}
+      <Button
+        variant={realEarthMode ? "default" : "outline"}
+        size="sm"
+        className={`h-8 text-xs gap-1.5 ${realEarthMode ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-card/90 backdrop-blur-md border-border/50"}`}
+        onClick={onToggleRealEarth}
+      >
+        <Globe2 className="h-3.5 w-3.5" />
+        <span className="hidden sm:inline">{realEarthMode ? (realEarthLocationName || "Real Earth") : "Real Earth"}</span>
+      </Button>
+
       {/* Divider */}
       <div className="w-px h-5 bg-border/50 mx-0.5 hidden sm:block" />
 
