@@ -39,8 +39,15 @@ const Index = () => {
   const [showExport, setShowExport] = useState(false);
   const [showMods, setShowMods] = useState(false);
   const [showSound, setShowSound] = useState(false);
+  const [showRealEarth, setShowRealEarth] = useState(false);
 
-  const biome = BIOMES[currentBiome];
+  // Real Earth Mode
+  const [realEarthMode, setRealEarthMode] = useState(false);
+  const [realEarthLocation, setRealEarthLocation] = useState<RealEarthLocation | null>(null);
+
+  const biome = realEarthMode && realEarthLocation
+    ? locationToBiome(realEarthLocation)
+    : BIOMES[currentBiome];
   const { mods, error: modError, installFromZip, installFromFiles, installPreset, toggleMod, removeMod, playerOverrides, weatherOverrides, terrainColorOverrides, biomeEffectOverrides, cameraOverrides, clearError } = useMods();
 
   const activeMod = mods.find((m) => m.enabled && m.config.type === "player");
