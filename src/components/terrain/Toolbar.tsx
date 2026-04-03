@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   Mountain, Sun, Moon, Volume2, Gamepad2, Package, Ruler,
-  Download, Globe, Layers, ChevronDown, Settings, Menu, X, Eye
+  Download, Globe, Globe2, Layers, ChevronDown, Settings, Menu, X, Eye
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
