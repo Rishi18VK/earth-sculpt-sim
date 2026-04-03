@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   Mountain, Sun, Moon, Volume2, Gamepad2, Package, Ruler,
-  Download, Globe, Layers, ChevronDown, Settings, Menu, X, Eye
+  Download, Globe, Globe2, Layers, ChevronDown, Settings, Menu, X, Eye
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,10 @@ interface ToolbarProps {
   onOpenSound: () => void;
   // Mod info
   activeMod?: InstalledMod;
+  // Real Earth Mode
+  realEarthMode: boolean;
+  onToggleRealEarth: () => void;
+  realEarthLocationName?: string;
 }
 
 const biomeOrder: BiomeId[] = ["earth", "volcanic", "desert", "arctic", "tropical", "dudhsagar"];
@@ -56,6 +60,9 @@ export default function Toolbar({
   onOpenMods,
   onOpenSound,
   activeMod,
+  realEarthMode,
+  onToggleRealEarth,
+  realEarthLocationName,
 }: ToolbarProps) {
   const biome = BIOMES[currentBiome];
 
@@ -98,6 +105,17 @@ export default function Toolbar({
           })}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* Real Earth Mode Toggle */}
+      <Button
+        variant={realEarthMode ? "default" : "outline"}
+        size="sm"
+        className={`h-8 text-xs gap-1.5 ${realEarthMode ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-card/90 backdrop-blur-md border-border/50"}`}
+        onClick={onToggleRealEarth}
+      >
+        <Globe2 className="h-3.5 w-3.5" />
+        <span className="hidden sm:inline">{realEarthMode ? (realEarthLocationName || "Real Earth") : "Real Earth"}</span>
+      </Button>
 
       {/* Divider */}
       <div className="w-px h-5 bg-border/50 mx-0.5 hidden sm:block" />

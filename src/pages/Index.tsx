@@ -10,9 +10,11 @@ import PlayModeUI from "@/components/terrain/PlayModeUI";
 import MobileControls from "@/components/terrain/MobileControls";
 import ModManager from "@/components/terrain/ModManager";
 import Toolbar from "@/components/terrain/Toolbar";
+import RealEarthPanel from "@/components/terrain/RealEarthPanel";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { BIOMES, BiomeId } from "@/lib/biomes";
 import { useMods } from "@/hooks/use-mods";
+import { RealEarthLocation, locationToBiome } from "@/lib/real-earth-locations";
 
 interface TerrainInfo {
   type: string;
@@ -37,8 +39,15 @@ const Index = () => {
   const [showExport, setShowExport] = useState(false);
   const [showMods, setShowMods] = useState(false);
   const [showSound, setShowSound] = useState(false);
+  const [showRealEarth, setShowRealEarth] = useState(false);
 
-  const biome = BIOMES[currentBiome];
+  // Real Earth Mode
+  const [realEarthMode, setRealEarthMode] = useState(false);
+  const [realEarthLocation, setRealEarthLocation] = useState<RealEarthLocation | null>(null);
+
+  const biome = realEarthMode && realEarthLocation
+    ? locationToBiome(realEarthLocation)
+    : BIOMES[currentBiome];
   const { mods, error: modError, installFromZip, installFromFiles, installPreset, toggleMod, removeMod, playerOverrides, weatherOverrides, terrainColorOverrides, biomeEffectOverrides, cameraOverrides, clearError } = useMods();
 
   const activeMod = mods.find((m) => m.enabled && m.config.type === "player");
@@ -154,6 +163,16 @@ const Index = () => {
             onOpenMods={() => setShowMods(true)}
             onOpenSound={() => setShowSound(true)}
             activeMod={activeMod}
+            realEarthMode={realEarthMode}
+            onToggleRealEarth={() => {
+              if (realEarthMode) {
+                setRealEarthMode(false);
+                setRealEarthLocation(null);
+              } else {
+                setShowRealEarth(true);
+              }
+            }}
+            realEarthLocationName={realEarthLocation?.name}
           />
         </div>
       </div>
@@ -205,7 +224,9 @@ const Index = () => {
         </div>
         <div className="pointer-events-auto bg-card/80 backdrop-blur-md rounded-lg px-3 py-1.5 border border-border/50">
           <p className="text-[10px] text-muted-foreground font-mono">
-            Seed: {seed} • {biome.emoji} {biome.name}
+            {realEarthMode && realEarthLocation
+              ? `🌎 ${realEarthLocation.name}, ${realEarthLocation.region} • ${realEarthLocation.lat.toFixed(1)}°, ${realEarthLocation.lng.toFixed(1)}°`
+              : `Seed: ${seed} • ${biome.emoji} ${biome.name}`}
           </p>
         </div>
       </div>
@@ -230,6 +251,30 @@ const Index = () => {
           </SheetHeader>
           <div className="mt-4">
             <ExportPanel biome={biome} seed={seed} />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Real Earth Panel */}
+      <Sheet open={showRealEarth} onOpenChange={setShowRealEarth}>
+        <SheetContent side="right" className="w-80 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="text-sm flex items-center gap-1.5">🌎 Real Earth Mode</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">
+            <RealEarthPanel
+              activeLocation={realEarthLocation}
+              onSelectLocation={(loc) => {
+                setRealEarthLocation(loc);
+                setRealEarthMode(true);
+                setSelectedInfo(null);
+                setPointA(null);
+                setPointB(null);
+                setMeasureMode(false);
+                setShowRealEarth(false);
+              }}
+              onClose={() => setShowRealEarth(false)}
+            />
           </div>
         </SheetContent>
       </Sheet>
