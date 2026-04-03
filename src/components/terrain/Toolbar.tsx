@@ -43,6 +43,9 @@ interface ToolbarProps {
   realEarthMode: boolean;
   onToggleRealEarth: () => void;
   realEarthLocationName?: string;
+  // SFX
+  sfxEnabled: boolean;
+  onToggleSfx: () => void;
 }
 
 const biomeOrder: BiomeId[] = ["earth", "volcanic", "desert", "arctic", "tropical", "dudhsagar"];
