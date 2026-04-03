@@ -163,6 +163,16 @@ const Index = () => {
             onOpenMods={() => setShowMods(true)}
             onOpenSound={() => setShowSound(true)}
             activeMod={activeMod}
+            realEarthMode={realEarthMode}
+            onToggleRealEarth={() => {
+              if (realEarthMode) {
+                setRealEarthMode(false);
+                setRealEarthLocation(null);
+              } else {
+                setShowRealEarth(true);
+              }
+            }}
+            realEarthLocationName={realEarthLocation?.name}
           />
         </div>
       </div>
