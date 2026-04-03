@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import Scene3D from "@/components/terrain/Scene3D";
 import InfoPanel from "@/components/terrain/InfoPanel";
 import TerrainLegend from "@/components/terrain/TerrainLegend";
@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { BIOMES, BiomeId } from "@/lib/biomes";
 import { useMods } from "@/hooks/use-mods";
 import { RealEarthLocation, locationToBiome } from "@/lib/real-earth-locations";
+import { sfxEngine } from "@/lib/sfx-engine";
 
 interface TerrainInfo {
   type: string;
@@ -34,6 +35,7 @@ const Index = () => {
   const [playerPosition, setPlayerPosition] = useState<[number, number, number] | null>(null);
   const [mobileInput, setMobileInput] = useState({ moveX: 0, moveZ: 0, cameraX: 0, cameraY: 0 });
   const [collectibles, setCollectibles] = useState({ collected: 0, total: 0 });
+  const [sfxEnabled, setSfxEnabled] = useState(true);
 
   // Sheet panels
   const [showExport, setShowExport] = useState(false);
@@ -91,6 +93,7 @@ const Index = () => {
     setPointA(null);
     setPointB(null);
     setMeasureMode(false);
+    sfxEngine.playBiomeSwitch();
   };
 
   const handleSeedChange = (newSeed: number) => {
@@ -173,6 +176,12 @@ const Index = () => {
               }
             }}
             realEarthLocationName={realEarthLocation?.name}
+            sfxEnabled={sfxEnabled}
+            onToggleSfx={() => {
+              const next = !sfxEnabled;
+              setSfxEnabled(next);
+              sfxEngine.setEnabled(next);
+            }}
           />
         </div>
       </div>
@@ -272,6 +281,7 @@ const Index = () => {
                 setPointB(null);
                 setMeasureMode(false);
                 setShowRealEarth(false);
+                sfxEngine.playBiomeSwitch();
               }}
               onClose={() => setShowRealEarth(false)}
             />

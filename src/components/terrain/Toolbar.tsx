@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
-  Mountain, Sun, Moon, Volume2, Gamepad2, Package, Ruler,
-  Download, Globe, Globe2, Layers, ChevronDown, Settings, Menu, X, Eye
+  Mountain, Sun, Moon, Volume2, VolumeX, Gamepad2, Package, Ruler,
+  Download, Globe, Globe2, Layers, ChevronDown, Settings, Menu, X, Eye, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +43,9 @@ interface ToolbarProps {
   realEarthMode: boolean;
   onToggleRealEarth: () => void;
   realEarthLocationName?: string;
+  // SFX
+  sfxEnabled: boolean;
+  onToggleSfx: () => void;
 }
 
 const biomeOrder: BiomeId[] = ["earth", "volcanic", "desert", "arctic", "tropical", "dudhsagar"];
@@ -63,6 +66,8 @@ export default function Toolbar({
   realEarthMode,
   onToggleRealEarth,
   realEarthLocationName,
+  sfxEnabled,
+  onToggleSfx,
 }: ToolbarProps) {
   const biome = BIOMES[currentBiome];
 
@@ -140,6 +145,17 @@ export default function Toolbar({
       >
         <Volume2 className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">Sound</span>
+      </Button>
+
+      {/* SFX Toggle */}
+      <Button
+        variant="outline"
+        size="sm"
+        className={`h-8 text-xs gap-1.5 bg-card/90 backdrop-blur-md border-border/50 ${sfxEnabled ? "" : "opacity-60"}`}
+        onClick={onToggleSfx}
+        title={sfxEnabled ? "Sound effects ON" : "Sound effects OFF"}
+      >
+        {sfxEnabled ? <Sparkles className="h-3.5 w-3.5 text-amber-400" /> : <VolumeX className="h-3.5 w-3.5" />}
       </Button>
 
       {/* Divider */}
