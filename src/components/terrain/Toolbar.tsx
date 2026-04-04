@@ -72,7 +72,7 @@ export default function Toolbar({
   const biome = BIOMES[currentBiome];
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1.5 max-w-[calc(100vw-1.5rem)] overflow-x-auto scrollbar-hide">
       {/* Logo */}
       <div className="flex items-center gap-2 bg-card/90 backdrop-blur-md rounded-lg px-3 py-1.5 border border-border/50 mr-1">
         <Mountain className="h-4 w-4 text-primary" />
