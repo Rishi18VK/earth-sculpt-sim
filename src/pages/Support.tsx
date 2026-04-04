@@ -53,7 +53,7 @@ export default function Support() {
   const playThankYouSound = () => {
     try {
       if (!audioRef.current) {
-        audioRef.current = new Audio("/sounds/faaah.mp3");
+        audioRef.current = new Audio("/sounds/wow-beautiful-audio-meme-download.mp3");
       }
       audioRef.current.currentTime = 0;
       audioRef.current.volume = 0.6;
