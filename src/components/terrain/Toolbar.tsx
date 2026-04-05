@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Mountain, Sun, Moon, Volume2, VolumeX, Gamepad2, Package, Ruler,
-  Download, Globe, Globe2, Layers, ChevronDown, Settings, Menu, X, Eye, Sparkles
+  Download, Globe, Globe2, Layers, ChevronDown, Settings, Menu, X, Eye, Sparkles, Heart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
