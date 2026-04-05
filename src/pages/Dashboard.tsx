@@ -61,7 +61,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
     // Fetch profile
-    supabase.from("profiles").select("*").eq("id", user.id).single().then(({ data }) => {
+    (supabase.from("profiles" as any).select("*").eq("id", user.id).single() as any).then(({ data }: any) => {
       if (data) {
         setProfile({ display_name: data.display_name, avatar_url: data.avatar_url, bio: data.bio });
         setEditName(data.display_name || "");
@@ -69,11 +69,11 @@ export default function Dashboard() {
       }
     });
     // Fetch stats
-    supabase.from("user_stats").select("*").eq("id", user.id).single().then(({ data }) => {
+    (supabase.from("user_stats" as any).select("*").eq("id", user.id).single() as any).then(({ data }: any) => {
       if (data) setStats(data as Stats);
     });
     // Fetch donations
-    supabase.from("donations").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).then(({ data }) => {
+    (supabase.from("donations" as any).select("*").eq("user_id", user.id).order("created_at", { ascending: false }) as any).then(({ data }: any) => {
       if (data) setDonations(data as Donation[]);
     });
   }, [user]);
