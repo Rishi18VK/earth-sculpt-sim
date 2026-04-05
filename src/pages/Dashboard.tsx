@@ -88,11 +88,11 @@ export default function Dashboard() {
 
   const handleSaveProfile = async () => {
     setSaving(true);
-    const { error } = await supabase.from("profiles").update({
+    const { error } = await (supabase.from("profiles" as any).update({
       display_name: editName,
       bio: editBio,
       updated_at: new Date().toISOString(),
-    }).eq("id", user.id);
+    } as any).eq("id", user.id) as any);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
