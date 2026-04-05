@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Mountain, Sun, Moon, Volume2, VolumeX, Gamepad2, Package, Ruler,
-  Download, Globe, Globe2, Layers, ChevronDown, Settings, Menu, X, Eye, Sparkles
+  Download, Globe, Globe2, Layers, ChevronDown, Settings, Menu, X, Eye, Sparkles, Heart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -69,6 +70,7 @@ export default function Toolbar({
   sfxEnabled,
   onToggleSfx,
 }: ToolbarProps) {
+  const navigate = useNavigate();
   const biome = BIOMES[currentBiome];
 
   return (
@@ -202,6 +204,17 @@ export default function Toolbar({
           </DropdownMenuContent>
         </DropdownMenu>
       )}
+
+      {/* Support */}
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-8 text-xs gap-1.5 bg-card/90 backdrop-blur-md border-border/50"
+        onClick={() => navigate("/support")}
+      >
+        <Heart className="h-3.5 w-3.5 text-destructive" />
+        <span className="hidden sm:inline">Support</span>
+      </Button>
     </div>
   );
 }
