@@ -205,6 +205,9 @@ export default function Toolbar({
         </DropdownMenu>
       )}
 
+      {/* Divider */}
+      <div className="w-px h-5 bg-border/50 mx-0.5 hidden sm:block" />
+
       {/* Support */}
       <Button
         variant="outline"
@@ -213,7 +216,18 @@ export default function Toolbar({
         onClick={() => navigate("/support")}
       >
         <Heart className="h-3.5 w-3.5 text-destructive" />
-        <span className="hidden sm:inline">Support</span>
+        <span className="hidden sm:inline">Donate</span>
+      </Button>
+
+      {/* Account */}
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-8 text-xs gap-1.5 bg-card/90 backdrop-blur-md border-border/50"
+        onClick={() => navigate("/dashboard")}
+      >
+        <User className="h-3.5 w-3.5" />
+        <span className="hidden sm:inline">Account</span>
       </Button>
     </div>
   );
