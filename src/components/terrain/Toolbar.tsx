@@ -70,6 +70,7 @@ export default function Toolbar({
   sfxEnabled,
   onToggleSfx,
 }: ToolbarProps) {
+  const navigate = useNavigate();
   const biome = BIOMES[currentBiome];
 
   return (
