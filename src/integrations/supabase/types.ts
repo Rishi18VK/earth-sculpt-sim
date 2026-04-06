@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      donations: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          message: string | null
+          payment_method: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          message?: string | null
+          payment_method?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          message?: string | null
+          payment_method?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mods: {
         Row: {
           author: string
@@ -56,6 +83,63 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           version?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_stats: {
+        Row: {
+          collectibles_found: number
+          created_at: string
+          distance_explored: number
+          id: string
+          terrains_generated: number
+          time_spent_seconds: number
+          updated_at: string
+        }
+        Insert: {
+          collectibles_found?: number
+          created_at?: string
+          distance_explored?: number
+          id: string
+          terrains_generated?: number
+          time_spent_seconds?: number
+          updated_at?: string
+        }
+        Update: {
+          collectibles_found?: number
+          created_at?: string
+          distance_explored?: number
+          id?: string
+          terrains_generated?: number
+          time_spent_seconds?: number
+          updated_at?: string
         }
         Relationships: []
       }
