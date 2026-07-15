@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Mountain, Mail, Lock, User, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -13,16 +14,21 @@ export default function Auth() {
   const [displayName, setDisplayName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const { signUp, signIn, continueAsGuest, user } = useAuth();
+  const { signIn, continueAsGuest, user } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const { toast } = useToast();
+
+  // Validate `next` as a same-origin relative path
+  const rawNext = params.get("next");
+  const next = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
 
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate("/", { replace: true });
+      navigate(next, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, next]);
 
   if (user) return null;
 
@@ -32,18 +38,27 @@ export default function Auth() {
     setSubmitting(true);
 
     if (isSignUp) {
-      const { error } = await signUp(email, password, displayName);
+      const emailRedirectTo = `${window.location.origin}${next}`;
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo,
+          data: { display_name: displayName || email.split("@")[0] },
+        },
+      });
       if (error) {
         toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
       } else {
-        toast({ title: "Check your email", description: "We sent you a verification link. Please verify your email to sign in." });
+        // Auto-confirm is on, so a session exists — the effect above redirects to `next`.
+        toast({ title: "Welcome!", description: "Your account is ready." });
       }
     } else {
       const { error } = await signIn(email, password);
       if (error) {
         toast({ title: "Sign in failed", description: error.message, variant: "destructive" });
       } else {
-        navigate("/", { replace: true });
+        navigate(next, { replace: true });
       }
     }
     setSubmitting(false);
@@ -51,7 +66,7 @@ export default function Auth() {
 
   const handleGuest = () => {
     continueAsGuest();
-    navigate("/", { replace: true });
+    navigate(next, { replace: true });
   };
 
   return (
