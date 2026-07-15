@@ -96,11 +96,16 @@ export default {
   				'Roboto',
   				'Helvetica Neue',
   				'Arial',
-  				'Noto Sans',
+  				'sans-serif'
+  			],
+  			display: [
+  				'Poppins',
+  				'Inter',
+  				'ui-sans-serif',
+  				'system-ui',
   				'sans-serif'
   			],
   			serif: [
-  				'Lora',
   				'ui-serif',
   				'Georgia',
   				'Cambria',
@@ -115,8 +120,6 @@ export default {
   				'Menlo',
   				'Monaco',
   				'Consolas',
-  				'Liberation Mono',
-  				'Courier New',
   				'monospace'
   			]
   		},
