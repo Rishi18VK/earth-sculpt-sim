@@ -34,8 +34,8 @@ export default function PaymentSection() {
         <div className="flex justify-center mb-4">
           <div className="w-40 h-40 rounded-2xl bg-white flex items-center justify-center shadow-inner border border-border/10">
             <div className="text-center">
-              <QrCode className="h-20 w-20 text-foreground/80 mx-auto mb-1" />
-              <span className="text-[10px] text-muted-foreground">Scan to Pay</span>
+              <QrCode className="h-20 w-20 text-slate-900/85 mx-auto mb-1" aria-hidden="true" />
+              <span className="text-[10px] font-semibold text-slate-700">Scan to Pay</span>
             </div>
           </div>
         </div>
