@@ -14,6 +14,93 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          code: string
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          title: string
+          xp_reward: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          title: string
+          xp_reward?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          title?: string
+          xp_reward?: number
+        }
+        Relationships: []
+      }
+      character_customization: {
+        Row: {
+          color: string
+          created_at: string
+          hat: string
+          skin: string
+          trail: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          hat?: string
+          skin?: string
+          trail?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          hat?: string
+          skin?: string
+          trail?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_rewards_log: {
+        Row: {
+          amount: number
+          created_at: string
+          day: string
+          id: string
+          reward_type: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          day: string
+          id?: string
+          reward_type?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          day?: string
+          id?: string
+          reward_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       donations: {
         Row: {
           amount: number
@@ -37,6 +124,36 @@ export type Database = {
           id?: string
           message?: string | null
           payment_method?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      inventory_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_code: string
+          metadata: Json
+          quantity: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_code: string
+          metadata?: Json
+          quantity?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_code?: string
+          metadata?: Json
+          quantity?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -110,6 +227,107 @@ export type Database = {
           display_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          id?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_progress: {
+        Row: {
+          created_at: string
+          last_daily_reward_at: string | null
+          level: number
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          created_at?: string
+          last_daily_reward_at?: string | null
+          level?: number
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          created_at?: string
+          last_daily_reward_at?: string | null
+          level?: number
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          created_at: string
+          fps_limit: number
+          graphics: string
+          high_contrast: boolean
+          language: string
+          larger_text: boolean
+          music_volume: number
+          reduced_motion: boolean
+          sfx_volume: number
+          theme: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fps_limit?: number
+          graphics?: string
+          high_contrast?: boolean
+          language?: string
+          larger_text?: boolean
+          music_volume?: number
+          reduced_motion?: boolean
+          sfx_volume?: number
+          theme?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fps_limit?: number
+          graphics?: string
+          high_contrast?: boolean
+          language?: string
+          larger_text?: boolean
+          music_volume?: number
+          reduced_motion?: boolean
+          sfx_volume?: number
+          theme?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
