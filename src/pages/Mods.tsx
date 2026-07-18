@@ -6,8 +6,8 @@ import ModManager from "@/components/terrain/ModManager";
 
 export default function ModsPage() {
   const {
-    mods, error, installFromZip, installFromFiles, installPreset,
-    toggleMod, removeMod, clearError,
+    mods, error, warnings, installFromZip, installFromFiles, installPreset,
+    toggleMod, removeMod, clearError, clearWarnings,
   } = useMods();
   const [open, setOpen] = useState(true);
   const enabledCount = mods.filter(m => m.enabled).length;
