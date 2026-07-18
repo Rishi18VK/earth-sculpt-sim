@@ -300,6 +300,8 @@ const Index = () => {
           onRemove={removeMod}
           error={modError}
           onClearError={clearError}
+          warnings={modWarnings}
+          onClearWarnings={clearWarnings}
           externalOpen={showMods}
           onExternalOpenChange={setShowMods}
         />
