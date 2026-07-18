@@ -6,8 +6,8 @@ import ModManager from "@/components/terrain/ModManager";
 
 export default function ModsPage() {
   const {
-    mods, error, installFromZip, installFromFiles, installPreset,
-    toggleMod, removeMod, clearError,
+    mods, error, warnings, installFromZip, installFromFiles, installPreset,
+    toggleMod, removeMod, clearError, clearWarnings,
   } = useMods();
   const [open, setOpen] = useState(true);
   const enabledCount = mods.filter(m => m.enabled).length;
@@ -23,7 +23,7 @@ export default function ModsPage() {
       <div className="grid grid-cols-3 gap-2">
         <StatCard icon={<Package className="h-4 w-4" />} label="Installed" value={mods.length} />
         <StatCard icon={<ShieldCheck className="h-4 w-4" />} label="Enabled" value={enabledCount} />
-        <StatCard icon={<AlertTriangle className="h-4 w-4" />} label="Warnings" value={0} />
+        <StatCard icon={<AlertTriangle className="h-4 w-4" />} label="Warnings" value={warnings.length} />
       </div>
 
       <div className="glass-card rounded-2xl p-4">
@@ -77,6 +77,8 @@ export default function ModsPage() {
           onRemove={removeMod}
           error={error}
           onClearError={clearError}
+          warnings={warnings}
+          onClearWarnings={clearWarnings}
           externalOpen={open}
           onExternalOpenChange={setOpen}
         />

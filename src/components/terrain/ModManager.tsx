@@ -20,6 +20,8 @@ interface ModManagerProps {
   onRemove: (id: string) => void;
   error: string | null;
   onClearError: () => void;
+  warnings?: string[];
+  onClearWarnings?: () => void;
   externalOpen?: boolean;
   onExternalOpenChange?: (open: boolean) => void;
 }
@@ -157,7 +159,7 @@ function ModInfoExpanded({ mod }: { mod: InstalledMod }) {
 
 export default function ModManager({
   mods, onInstallZip, onInstallFiles, onInstallPreset, onToggle, onRemove,
-  error, onClearError, externalOpen, onExternalOpenChange,
+  error, onClearError, warnings, onClearWarnings, externalOpen, onExternalOpenChange,
 }: ModManagerProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = externalOpen ?? internalOpen;
@@ -258,8 +260,22 @@ export default function ModManager({
 
         {error && (
           <div className="bg-destructive/10 border border-destructive/30 rounded-md p-3 flex items-start gap-2">
-            <span className="text-xs text-destructive flex-1">{error}</span>
-            <button onClick={onClearError} className="text-destructive hover:text-destructive/80">
+            <span className="text-xs text-destructive flex-1 whitespace-pre-line font-medium">{error}</span>
+            <button onClick={onClearError} className="text-destructive hover:text-destructive/80" aria-label="Dismiss error">
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        )}
+
+        {warnings && warnings.length > 0 && (
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-md p-3 flex items-start gap-2">
+            <div className="flex-1 space-y-1">
+              <p className="text-xs font-semibold text-amber-500">Installed with warnings</p>
+              {warnings.map((w, i) => (
+                <p key={i} className="text-[11px] text-amber-500/90 whitespace-pre-line">• {w}</p>
+              ))}
+            </div>
+            <button onClick={onClearWarnings} className="text-amber-500 hover:text-amber-500/80" aria-label="Dismiss warnings">
               <X className="h-3 w-3" />
             </button>
           </div>
@@ -406,15 +422,15 @@ export default function ModManager({
             <div className="border rounded-lg p-4 space-y-3">
               <h4 className="text-sm font-semibold flex items-center gap-2">
                 <Upload className="h-4 w-4 text-primary" />
-                Upload Mod Package (.zip)
+                Upload Mod Package (.zip / .pak)
               </h4>
               <p className="text-xs text-muted-foreground">
-                Upload a ZIP with mod.json. Supports types: player, weather, terrain_color, biome_effect, camera.
+                Upload a ZIP or Pak with a <code>mod.json</code> manifest. Executable files, scripts, HTML, and paths with <code>..</code> are rejected. Max 20 MB.
               </p>
               <input
                 ref={zipInputRef}
                 type="file"
-                accept=".zip"
+                accept=".zip,.pak,application/zip,application/x-zip-compressed"
                 onChange={handleZipUpload}
                 className="block w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 file:cursor-pointer"
                 disabled={uploading}

@@ -19,6 +19,7 @@ export function useMods() {
   const [mods, setMods] = useState<InstalledMod[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [warnings, setWarnings] = useState<string[]>([]);
 
   useEffect(() => {
     loadLocalMods()
@@ -29,10 +30,12 @@ export function useMods() {
 
   const installFromZip = useCallback(async (file: File) => {
     setError(null);
+    setWarnings([]);
     try {
-      const { mod, modelBlob } = await extractModFromZip(file);
+      const { mod, modelBlob, warnings: w } = await extractModFromZip(file);
       await saveLocalMod(mod, modelBlob);
       setMods((prev) => [...prev, mod]);
+      if (w.length) setWarnings(w);
       return mod;
     } catch (e: any) {
       setError(e.message);
@@ -43,10 +46,12 @@ export function useMods() {
   const installFromFiles = useCallback(
     async (configFile: File | null, modelFile: File | null, manualConfig?: Partial<ModConfig>) => {
       setError(null);
+      setWarnings([]);
       try {
-        const { mod, modelBlob } = await createModFromFiles(configFile, modelFile, manualConfig);
+        const { mod, modelBlob, warnings: w } = await createModFromFiles(configFile, modelFile, manualConfig);
         await saveLocalMod(mod, modelBlob);
         setMods((prev) => [...prev, mod]);
+        if (w.length) setWarnings(w);
         return mod;
       } catch (e: any) {
         setError(e.message);
@@ -115,6 +120,7 @@ export function useMods() {
     mods,
     loading,
     error,
+    warnings,
     installFromZip,
     installFromFiles,
     installPreset,
@@ -126,5 +132,6 @@ export function useMods() {
     biomeEffectOverrides,
     cameraOverrides,
     clearError: () => setError(null),
+    clearWarnings: () => setWarnings([]),
   };
 }
