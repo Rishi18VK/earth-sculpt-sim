@@ -50,7 +50,7 @@ const Index = () => {
   const biome = realEarthMode && realEarthLocation
     ? locationToBiome(realEarthLocation)
     : BIOMES[currentBiome];
-  const { mods, error: modError, installFromZip, installFromFiles, installPreset, toggleMod, removeMod, playerOverrides, weatherOverrides, terrainColorOverrides, biomeEffectOverrides, cameraOverrides, clearError } = useMods();
+  const { mods, error: modError, warnings: modWarnings, installFromZip, installFromFiles, installPreset, toggleMod, removeMod, playerOverrides, weatherOverrides, terrainColorOverrides, biomeEffectOverrides, cameraOverrides, clearError, clearWarnings } = useMods();
 
   const activeMod = mods.find((m) => m.enabled && m.config.type === "player");
 
