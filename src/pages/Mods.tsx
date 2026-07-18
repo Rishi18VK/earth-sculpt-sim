@@ -77,6 +77,8 @@ export default function ModsPage() {
           onRemove={removeMod}
           error={error}
           onClearError={clearError}
+          warnings={warnings}
+          onClearWarnings={clearWarnings}
           externalOpen={open}
           onExternalOpenChange={setOpen}
         />
