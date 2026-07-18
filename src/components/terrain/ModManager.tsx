@@ -422,15 +422,15 @@ export default function ModManager({
             <div className="border rounded-lg p-4 space-y-3">
               <h4 className="text-sm font-semibold flex items-center gap-2">
                 <Upload className="h-4 w-4 text-primary" />
-                Upload Mod Package (.zip)
+                Upload Mod Package (.zip / .pak)
               </h4>
               <p className="text-xs text-muted-foreground">
-                Upload a ZIP with mod.json. Supports types: player, weather, terrain_color, biome_effect, camera.
+                Upload a ZIP or Pak with a <code>mod.json</code> manifest. Executable files, scripts, HTML, and paths with <code>..</code> are rejected. Max 20 MB.
               </p>
               <input
                 ref={zipInputRef}
                 type="file"
-                accept=".zip"
+                accept=".zip,.pak,application/zip,application/x-zip-compressed"
                 onChange={handleZipUpload}
                 className="block w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 file:cursor-pointer"
                 disabled={uploading}
