@@ -40,8 +40,8 @@ export const modConfigSchema = z.object({
   apiVersion: semver.optional(),
   minAppVersion: semver.optional(),
   model: z.string().max(200).optional(),
-  textures: z.record(z.string().max(200)).optional(),
-  animations: z.record(z.string().max(200)).optional(),
+  textures: z.record(z.string(), z.string().max(200)).optional(),
+  animations: z.record(z.string(), z.string().max(200)).optional(),
   player: z.object({
     speed: z.number().min(0).max(200).optional(),
     sprintSpeed: z.number().min(0).max(400).optional(),
