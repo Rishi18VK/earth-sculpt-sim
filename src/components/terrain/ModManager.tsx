@@ -159,7 +159,7 @@ function ModInfoExpanded({ mod }: { mod: InstalledMod }) {
 
 export default function ModManager({
   mods, onInstallZip, onInstallFiles, onInstallPreset, onToggle, onRemove,
-  error, onClearError, externalOpen, onExternalOpenChange,
+  error, onClearError, warnings, onClearWarnings, externalOpen, onExternalOpenChange,
 }: ModManagerProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = externalOpen ?? internalOpen;
