@@ -72,55 +72,70 @@ export async function updateLocalMod(id: string, updates: Partial<InstalledMod>)
 
 // ---- ZIP Extraction ----
 
-export async function extractModFromZip(file: File): Promise<{ mod: InstalledMod; modelBlob?: Blob }> {
-  const zip = await JSZip.loadAsync(file);
+export async function extractModFromZip(file: File): Promise<{ mod: InstalledMod; modelBlob?: Blob; warnings: string[] }> {
+  const ext = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
+  if (ext !== ".zip" && ext !== ".pak") {
+    throw new Error(`Unsupported archive "${ext || "(none)"}". Upload a .zip or .pak file.`);
+  }
 
+  let zip: JSZip;
+  try {
+    zip = await JSZip.loadAsync(file);
+  } catch {
+    throw new Error("Could not read archive — the file is corrupt or not a valid ZIP/Pak.");
+  }
+
+  // 1. ZIP-level safety checks (size, path traversal, forbidden ext, zip-bomb).
+  const zipReport = await validateModZip(file, zip);
+
+  // 2. Locate manifest.
   let modJsonFile: JSZip.JSZipObject | null = null;
   let basePath = "";
-
   zip.forEach((relativePath, zipEntry) => {
-    if (relativePath.endsWith("mod.json") && !modJsonFile) {
+    if (relativePath.toLowerCase().endsWith("mod.json") && !modJsonFile) {
       modJsonFile = zipEntry;
-      basePath = relativePath.replace("mod.json", "");
+      basePath = relativePath.slice(0, relativePath.toLowerCase().lastIndexOf("mod.json"));
     }
   });
-
   if (!modJsonFile) {
-    throw new Error("No mod.json found in ZIP file. Please include a mod.json configuration file.");
+    throw new Error("No mod.json found in archive. Add a mod.json manifest at the root.");
   }
 
   const configText = await (modJsonFile as JSZip.JSZipObject).async("text");
-  let config: ModConfig;
+  if (configText.length > MOD_LIMITS.maxConfigBytes) {
+    throw new Error(`mod.json is too large (${configText.length} bytes). Max ${MOD_LIMITS.maxConfigBytes}.`);
+  }
 
+  let rawConfig: unknown;
   try {
-    config = JSON.parse(configText);
-  } catch {
-    throw new Error("Invalid mod.json: Could not parse JSON.");
+    rawConfig = JSON.parse(configText);
+  } catch (e: any) {
+    throw new Error(`Invalid mod.json — not valid JSON.\n${e?.message ?? ""}`.trim());
   }
 
-  if (!config.name || !config.type) {
-    throw new Error("Invalid mod.json: Missing required 'name' or 'type' field.");
-  }
+  // 3. Schema + version compatibility.
+  const { config, warnings } = validateModConfig(rawConfig);
+  warnings.push(...zipReport.warnings);
 
-  if (!VALID_MOD_TYPES.includes(config.type)) {
-    throw new Error(`Unsupported mod type: "${config.type}". Supported types: ${VALID_MOD_TYPES.join(", ")}`);
-  }
-
+  // 4. Resolve model, if any.
   let modelBlob: Blob | undefined;
   let modelUrl: string | undefined;
-  const modelExtensions = [".glb", ".gltf", ".obj"];
+  const modelExtensions = MOD_LIMITS.allowedModelExts;
 
   if (config.model) {
-    const modelFile = zip.file(basePath + config.model);
-    if (modelFile) {
-      modelBlob = await modelFile.async("blob");
-      modelUrl = URL.createObjectURL(modelBlob);
+    const modelPath = basePath + config.model;
+    if (isBadPath(config.model)) {
+      throw new Error(`mod.json "model" path is unsafe: "${config.model}".`);
     }
-  }
-
-  if (!modelBlob) {
-    for (const [path, entry] of Object.entries(zip.files) as [string, any][]) {
-      if (!entry.dir && modelExtensions.some((ext: string) => path.toLowerCase().endsWith(ext))) {
+    const modelFile = zip.file(modelPath);
+    if (!modelFile) {
+      throw new Error(`Model file "${config.model}" listed in mod.json was not found in the archive.`);
+    }
+    modelBlob = await modelFile.async("blob");
+    modelUrl = URL.createObjectURL(modelBlob);
+  } else {
+    for (const [path, entry] of Object.entries(zip.files) as [string, JSZip.JSZipObject][]) {
+      if (!entry.dir && modelExtensions.some((e) => path.toLowerCase().endsWith(e))) {
         modelBlob = await entry.async("blob");
         modelUrl = URL.createObjectURL(modelBlob);
         break;
@@ -128,12 +143,24 @@ export async function extractModFromZip(file: File): Promise<{ mod: InstalledMod
     }
   }
 
-  const id = `mod_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  if (modelBlob && modelBlob.size > MOD_LIMITS.maxFileBytes) {
+    throw new Error(
+      `Model too large (${(modelBlob.size / 1024 / 1024).toFixed(1)} MB). Max ${MOD_LIMITS.maxFileBytes / 1024 / 1024} MB.`
+    );
+  }
 
+  const id = `mod_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   return {
     mod: { id, config, enabled: true, modelUrl, createdAt: Date.now(), source: "local" },
     modelBlob,
+    warnings,
   };
+}
+
+function isBadPath(p: string): boolean {
+  if (!p) return true;
+  if (p.startsWith("/") || /^[a-zA-Z]:[\\/]/.test(p)) return true;
+  return p.split(/[\\/]/).some((s) => s === "..");
 }
 
 // ---- Individual File Upload ----
@@ -142,23 +169,27 @@ export async function createModFromFiles(
   configFile: File | null,
   modelFile: File | null,
   manualConfig?: Partial<ModConfig>
-): Promise<{ mod: InstalledMod; modelBlob?: Blob }> {
-  let config: ModConfig;
+): Promise<{ mod: InstalledMod; modelBlob?: Blob; warnings: string[] }> {
+  let rawConfig: unknown;
 
   if (configFile) {
+    if (configFile.size > MOD_LIMITS.maxConfigBytes) {
+      throw new Error(`mod.json is too large (${configFile.size} bytes). Max ${MOD_LIMITS.maxConfigBytes}.`);
+    }
     const text = await configFile.text();
     try {
-      config = JSON.parse(text);
-    } catch {
-      throw new Error("Invalid mod.json file.");
+      rawConfig = JSON.parse(text);
+    } catch (e: any) {
+      throw new Error(`Invalid mod.json — not valid JSON.\n${e?.message ?? ""}`.trim());
     }
   } else if (manualConfig) {
-    config = {
+    rawConfig = {
       name: manualConfig.name || "Custom Mod",
       version: manualConfig.version || "1.0.0",
       author: manualConfig.author || "Unknown",
       description: manualConfig.description || "",
       type: manualConfig.type || "player",
+      apiVersion: manualConfig.apiVersion,
       player: manualConfig.player,
       weather: manualConfig.weather,
       terrainColor: manualConfig.terrainColor,
@@ -169,25 +200,24 @@ export async function createModFromFiles(
     throw new Error("Either a config file or manual configuration is required.");
   }
 
+  const { config, warnings } = validateModConfig(rawConfig);
+
   let modelBlob: Blob | undefined;
   let modelUrl: string | undefined;
   if (modelFile) {
-    const validExts = [".glb", ".gltf", ".obj"];
-    const ext = modelFile.name.toLowerCase().slice(modelFile.name.lastIndexOf("."));
-    if (!validExts.includes(ext)) {
-      throw new Error(`Unsupported model format: ${ext}. Use GLB, GLTF, or OBJ.`);
-    }
+    validateModelFile(modelFile);
     modelBlob = modelFile;
     modelUrl = URL.createObjectURL(modelFile);
   }
 
   const id = `mod_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-
   return {
     mod: { id, config, enabled: true, modelUrl, createdAt: Date.now(), source: "local" },
     modelBlob,
+    warnings,
   };
 }
+
 
 // ---- Create mod from preset config (no files) ----
 
