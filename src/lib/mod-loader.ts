@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { get, set, del, keys, entries } from "idb-keyval";
+import { get, set, del } from "idb-keyval";
 import type {
   ModConfig,
   InstalledMod,
@@ -8,14 +8,12 @@ import type {
   ModTerrainColorOverrides,
   ModBiomeEffectOverrides,
   ModCameraOverrides,
-  ModType,
 } from "./mod-types";
+import { validateModConfig, validateModZip, validateModelFile, MOD_LIMITS } from "./mod-validation";
 
 const MOD_STORE_PREFIX = "terracraft_mod_";
 const MOD_LIST_KEY = "terracraft_mod_list";
 const MOD_BLOB_PREFIX = "terracraft_mod_blob_";
-
-const VALID_MOD_TYPES: ModType[] = ["player", "weather", "terrain_color", "biome_effect", "camera"];
 
 // ---- IndexedDB Local Storage ----
 
