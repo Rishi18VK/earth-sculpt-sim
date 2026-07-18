@@ -120,6 +120,7 @@ export function useMods() {
     mods,
     loading,
     error,
+    warnings,
     installFromZip,
     installFromFiles,
     installPreset,
@@ -131,5 +132,6 @@ export function useMods() {
     biomeEffectOverrides,
     cameraOverrides,
     clearError: () => setError(null),
+    clearWarnings: () => setWarnings([]),
   };
 }
