@@ -57,6 +57,10 @@ export interface ModConfig {
   author: string;
   description?: string;
   type: "player" | "weather" | "terrain_color" | "biome_effect" | "camera";
+  /** Mod API version this mod targets (semver). Checked against APP_MOD_API_VERSION. */
+  apiVersion?: string;
+  /** Legacy alias for apiVersion. */
+  minAppVersion?: string;
   model?: string;
   textures?: Record<string, string>;
   animations?: Record<string, string>;
