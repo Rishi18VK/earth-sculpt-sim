@@ -260,8 +260,22 @@ export default function ModManager({
 
         {error && (
           <div className="bg-destructive/10 border border-destructive/30 rounded-md p-3 flex items-start gap-2">
-            <span className="text-xs text-destructive flex-1">{error}</span>
-            <button onClick={onClearError} className="text-destructive hover:text-destructive/80">
+            <span className="text-xs text-destructive flex-1 whitespace-pre-line font-medium">{error}</span>
+            <button onClick={onClearError} className="text-destructive hover:text-destructive/80" aria-label="Dismiss error">
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        )}
+
+        {warnings && warnings.length > 0 && (
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-md p-3 flex items-start gap-2">
+            <div className="flex-1 space-y-1">
+              <p className="text-xs font-semibold text-amber-500">Installed with warnings</p>
+              {warnings.map((w, i) => (
+                <p key={i} className="text-[11px] text-amber-500/90 whitespace-pre-line">• {w}</p>
+              ))}
+            </div>
+            <button onClick={onClearWarnings} className="text-amber-500 hover:text-amber-500/80" aria-label="Dismiss warnings">
               <X className="h-3 w-3" />
             </button>
           </div>
