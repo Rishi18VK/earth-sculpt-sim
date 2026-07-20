@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Scene3D from "@/components/terrain/Scene3D";
 import InfoPanel from "@/components/terrain/InfoPanel";
 import TerrainLegend from "@/components/terrain/TerrainLegend";
@@ -11,10 +11,11 @@ import MobileControls from "@/components/terrain/MobileControls";
 import ModManager from "@/components/terrain/ModManager";
 import Toolbar from "@/components/terrain/Toolbar";
 import RealEarthPanel from "@/components/terrain/RealEarthPanel";
+import ExplorerActions from "@/components/terrain/ExplorerActions";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { BIOMES, BiomeId } from "@/lib/biomes";
 import { useMods } from "@/hooks/use-mods";
-import { RealEarthLocation, locationToBiome } from "@/lib/real-earth-locations";
+import { RealEarthLocation, locationToBiome, REAL_EARTH_LOCATIONS } from "@/lib/real-earth-locations";
 import { sfxEngine } from "@/lib/sfx-engine";
 
 interface TerrainInfo {
@@ -110,6 +111,47 @@ const Index = () => {
       return !prev;
     });
   };
+  // Hydrate state from share URL (?biome=, ?seed=, ?night=, ?loc=)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const b = params.get("biome");
+    const s = params.get("seed");
+    const n = params.get("night");
+    const loc = params.get("loc");
+    if (b && b in BIOMES) setCurrentBiome(b as BiomeId);
+    if (s && !isNaN(Number(s))) setSeed(Number(s));
+    if (n === "1" || n === "true") setIsNight(true);
+    if (loc && REAL_EARTH_LOCATIONS[loc]) {
+      setRealEarthLocation(REAL_EARTH_LOCATIONS[loc]);
+      setRealEarthMode(true);
+    }
+  }, []);
+
+  // Keyboard shortcut: F for fullscreen
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "f" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA") return;
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+        else document.exitFullscreen().catch(() => {});
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const realEarthLocationKey = realEarthMode && realEarthLocation
+    ? Object.keys(REAL_EARTH_LOCATIONS).find((k) => REAL_EARTH_LOCATIONS[k].name === realEarthLocation.name)
+    : undefined;
+
+  const shareState = {
+    biome: realEarthMode ? undefined : currentBiome,
+    seed: realEarthMode ? undefined : seed,
+    night: isNight ? 1 : undefined,
+    loc: realEarthLocationKey,
+  };
+
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-background">
@@ -186,6 +228,16 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Explorer floating actions: fullscreen, screenshot, share */}
+      <div className="absolute top-14 left-3 z-20">
+        <ExplorerActions
+          biomeLabel={realEarthMode && realEarthLocation ? realEarthLocation.name : biome.name}
+          shareState={shareState}
+        />
+      </div>
+
+
+
       {/* Play Mode HUD */}
       {playMode && playerPosition && (
         <div className="absolute top-14 right-3 z-10 pointer-events-auto">
@@ -217,7 +269,7 @@ const Index = () => {
 
       {/* Measure mode indicator */}
       {measureMode && !playMode && (
-        <div className="absolute top-14 left-3 z-10 pointer-events-auto">
+        <div className="absolute top-14 left-16 z-10 pointer-events-auto">
           <div className="bg-primary/90 backdrop-blur-md rounded-lg px-4 py-2 border border-primary animate-pulse">
             <p className="text-xs font-semibold text-primary-foreground">
               📐 Measure Mode — Click terrain to place {!pointA ? "Point A" : "Point B"}
