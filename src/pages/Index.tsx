@@ -269,7 +269,7 @@ const Index = () => {
 
       {/* Measure mode indicator */}
       {measureMode && !playMode && (
-        <div className="absolute top-14 left-3 z-10 pointer-events-auto">
+        <div className="absolute top-14 left-16 z-10 pointer-events-auto">
           <div className="bg-primary/90 backdrop-blur-md rounded-lg px-4 py-2 border border-primary animate-pulse">
             <p className="text-xs font-semibold text-primary-foreground">
               📐 Measure Mode — Click terrain to place {!pointA ? "Point A" : "Point B"}
