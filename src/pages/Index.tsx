@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Scene3D from "@/components/terrain/Scene3D";
 import InfoPanel from "@/components/terrain/InfoPanel";
 import TerrainLegend from "@/components/terrain/TerrainLegend";
@@ -11,10 +11,11 @@ import MobileControls from "@/components/terrain/MobileControls";
 import ModManager from "@/components/terrain/ModManager";
 import Toolbar from "@/components/terrain/Toolbar";
 import RealEarthPanel from "@/components/terrain/RealEarthPanel";
+import ExplorerActions from "@/components/terrain/ExplorerActions";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { BIOMES, BiomeId } from "@/lib/biomes";
 import { useMods } from "@/hooks/use-mods";
-import { RealEarthLocation, locationToBiome } from "@/lib/real-earth-locations";
+import { RealEarthLocation, locationToBiome, REAL_EARTH_LOCATIONS } from "@/lib/real-earth-locations";
 import { sfxEngine } from "@/lib/sfx-engine";
 
 interface TerrainInfo {
