@@ -228,6 +228,16 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Explorer floating actions: fullscreen, screenshot, share */}
+      <div className="absolute top-14 left-3 z-20">
+        <ExplorerActions
+          biomeLabel={realEarthMode && realEarthLocation ? realEarthLocation.name : biome.name}
+          shareState={shareState}
+        />
+      </div>
+
+
+
       {/* Play Mode HUD */}
       {playMode && playerPosition && (
         <div className="absolute top-14 right-3 z-10 pointer-events-auto">
