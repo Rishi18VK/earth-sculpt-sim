@@ -111,6 +111,47 @@ const Index = () => {
       return !prev;
     });
   };
+  // Hydrate state from share URL (?biome=, ?seed=, ?night=, ?loc=)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const b = params.get("biome");
+    const s = params.get("seed");
+    const n = params.get("night");
+    const loc = params.get("loc");
+    if (b && b in BIOMES) setCurrentBiome(b as BiomeId);
+    if (s && !isNaN(Number(s))) setSeed(Number(s));
+    if (n === "1" || n === "true") setIsNight(true);
+    if (loc && REAL_EARTH_LOCATIONS[loc]) {
+      setRealEarthLocation(REAL_EARTH_LOCATIONS[loc]);
+      setRealEarthMode(true);
+    }
+  }, []);
+
+  // Keyboard shortcut: F for fullscreen
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "f" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA") return;
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+        else document.exitFullscreen().catch(() => {});
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const realEarthLocationKey = realEarthMode && realEarthLocation
+    ? Object.keys(REAL_EARTH_LOCATIONS).find((k) => REAL_EARTH_LOCATIONS[k].name === realEarthLocation.name)
+    : undefined;
+
+  const shareState = {
+    biome: realEarthMode ? undefined : currentBiome,
+    seed: realEarthMode ? undefined : seed,
+    night: isNight ? 1 : undefined,
+    loc: realEarthLocationKey,
+  };
+
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-background">
