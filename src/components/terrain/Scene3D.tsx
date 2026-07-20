@@ -68,6 +68,7 @@ export default function Scene3D({
         powerPreference: "high-performance",
         toneMapping: THREE.ACESFilmicToneMapping,
         toneMappingExposure: 1.15,
+        preserveDrawingBuffer: true,
       }}
       dpr={quality.dpr}
       style={{ width: "100%", height: "100%" }}
