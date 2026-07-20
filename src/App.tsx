@@ -17,6 +17,7 @@ import MapPage from "./pages/Map";
 import ModsPage from "./pages/Mods";
 import Profile from "./pages/Profile";
 import SettingsPage from "./pages/Settings";
+import Community from "./pages/Community";
 import AppShell from "@/components/shell/AppShell";
 import LoadingScreen from "@/components/shell/LoadingScreen";
 
@@ -35,6 +36,7 @@ function Shell() {
       <Route path="/discover" element={<Discover />} />
       <Route path="/map" element={<MapPage />} />
       <Route path="/mods" element={<ModsPage />} />
+      <Route path="/community" element={<Community />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/support" element={<Support />} />
