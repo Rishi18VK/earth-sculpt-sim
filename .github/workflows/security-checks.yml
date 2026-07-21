@@ -1,0 +1,29 @@
+name: Security Regression Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  security-checks:
+    name: Guard previously-fixed findings
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run security regression checks
+        run: bun run security:check
+
+      - name: npm audit (high & critical)
+        run: |
+          bun pm ls > /dev/null 2>&1 || true
+          npx --yes better-npm-audit audit --level high || exit 1

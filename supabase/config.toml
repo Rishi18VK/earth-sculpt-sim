@@ -1,1 +1,6 @@
 project_id = "zjwxodebqygykuvpqfyv"
+
+# Auth security posture. Guarded by scripts/security-checks.mjs.
+# Do not disable without also updating the CI security regression checks.
+[auth]
+enable_password_hibp = true
