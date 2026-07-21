@@ -32,27 +32,35 @@ const migrations = migrationFiles.map((f) => ({
 }));
 const allSql = migrations.map((m) => m.sql).join("\n");
 
+/** Strip -- line comments and /* block *\/ comments. */
+function stripComments(sql) {
+  return sql
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/--[^\n]*/g, "");
+}
+
 /** Split SQL into semicolon-terminated statements (naive but sufficient here). */
 function splitStatements(sql) {
+  const clean = stripComments(sql);
   const stmts = [];
   let buf = "";
   let inString = false;
   let inDollar = false;
   let dollarTag = "";
-  for (let i = 0; i < sql.length; i++) {
-    const c = sql[i];
+  for (let i = 0; i < clean.length; i++) {
+    const c = clean[i];
     buf += c;
     if (inDollar) {
-      if (sql.startsWith(dollarTag, i)) {
+      if (clean.startsWith(dollarTag, i)) {
         buf += dollarTag.slice(1);
         i += dollarTag.length - 1;
         inDollar = false;
       }
       continue;
     }
-    if (c === "'" && sql[i - 1] !== "\\") inString = !inString;
+    if (c === "'" && clean[i - 1] !== "\\") inString = !inString;
     if (!inString && c === "$") {
-      const m = sql.slice(i).match(/^\$[a-zA-Z_]*\$/);
+      const m = clean.slice(i).match(/^\$[a-zA-Z_]*\$/);
       if (m) {
         dollarTag = m[0];
         buf += dollarTag.slice(1);
@@ -62,13 +70,14 @@ function splitStatements(sql) {
       }
     }
     if (!inString && c === ";") {
-      stmts.push(buf);
+      stmts.push(buf.trim());
       buf = "";
     }
   }
-  if (buf.trim()) stmts.push(buf);
+  if (buf.trim()) stmts.push(buf.trim());
   return stmts;
 }
+
 
 /** Return the set of policies (by table + name) that are effective at the end
  *  of all migrations — i.e. created and not later dropped or replaced without
