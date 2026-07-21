@@ -3,19 +3,14 @@
  * Automated security regression checks.
  * Guards against reintroducing previously-fixed security findings.
  *
- * Fixed findings covered:
- *  1. SUPA_anon_security_definer_function_executable
- *  2. SUPA_authenticated_security_definer_function_executable
- *     -> public.handle_new_user() must NOT be EXECUTE-granted to anon/authenticated/PUBLIC
- *  3. SUPA_auth_leaked_password_protection
- *     -> supabase/config.toml must enable password HIBP protection
- *  4. SUPA_pg_graphql_anon_table_exposed
- *  5. SUPA_pg_graphql_authenticated_table_exposed
- *     -> pg_graphql extension must not be (re)created
- *  6. SUPA_public_bucket_allows_listing
- *     -> no broad SELECT policy on storage.objects for the "mods" bucket
- *  7. mods_missing_update_check
- *     -> UPDATE policy on public.mods must include WITH CHECK (auth.uid() = user_id)
+ * Covered findings:
+ *  - SUPA_anon_security_definer_function_executable
+ *  - SUPA_authenticated_security_definer_function_executable
+ *  - SUPA_auth_leaked_password_protection
+ *  - SUPA_pg_graphql_anon_table_exposed
+ *  - SUPA_pg_graphql_authenticated_table_exposed
+ *  - SUPA_public_bucket_allows_listing
+ *  - mods_missing_update_check
  */
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -28,7 +23,6 @@ const failures = [];
 const fail = (id, msg) => failures.push(`✗ [${id}] ${msg}`);
 const ok = (id, msg) => console.log(`✓ [${id}] ${msg}`);
 
-// Load all migration SQL, newest last
 const migrationFiles = existsSync(MIGRATIONS_DIR)
   ? readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith(".sql")).sort()
   : [];
@@ -37,108 +31,156 @@ const migrations = migrationFiles.map((f) => ({
   sql: readFileSync(join(MIGRATIONS_DIR, f), "utf8"),
 }));
 const allSql = migrations.map((m) => m.sql).join("\n");
-const allSqlNorm = allSql.replace(/\s+/g, " ").toLowerCase();
 
-// --- 1 & 2: handle_new_user must not be executable by anon/authenticated/public ---
-{
-  const id = "SUPA_security_definer_function_executable";
-  // Find any GRANT EXECUTE ... handle_new_user ... TO ... (anon|authenticated|public)
-  const badGrant = /grant\s+execute[^;]*handle_new_user[^;]*to\s+[^;]*(anon|authenticated|public)/i;
-  // Also flag CREATE FUNCTION without matching REVOKE afterwards
-  const hasRevoke = /revoke\s+execute[^;]*handle_new_user[^;]*from\s+[^;]*(public|anon|authenticated)/i.test(allSql);
-  if (badGrant.test(allSql)) {
-    fail(id, "A migration GRANTs EXECUTE on handle_new_user to anon/authenticated/PUBLIC.");
-  } else if (!hasRevoke) {
-    fail(id, "No REVOKE EXECUTE on handle_new_user from PUBLIC/anon/authenticated found.");
-  } else {
-    ok(id, "handle_new_user execute privileges are revoked from anon/authenticated/PUBLIC.");
-  }
-}
-
-// --- 3: Leaked password protection ---
-{
-  const id = "SUPA_auth_leaked_password_protection";
-  if (!existsSync(CONFIG_TOML)) {
-    fail(id, "supabase/config.toml is missing.");
-  } else {
-    const cfg = readFileSync(CONFIG_TOML, "utf8");
-    // Accept either password_hibp_enabled = true or enable_password_hibp = true
-    if (/(password_hibp_enabled|enable_password_hibp)\s*=\s*true/i.test(cfg)) {
-      ok(id, "Leaked password protection (HIBP) is enabled.");
-    } else {
-      fail(id, "Leaked password protection is not enabled in supabase/config.toml.");
+/** Split SQL into semicolon-terminated statements (naive but sufficient here). */
+function splitStatements(sql) {
+  const stmts = [];
+  let buf = "";
+  let inString = false;
+  let inDollar = false;
+  let dollarTag = "";
+  for (let i = 0; i < sql.length; i++) {
+    const c = sql[i];
+    buf += c;
+    if (inDollar) {
+      if (sql.startsWith(dollarTag, i)) {
+        buf += dollarTag.slice(1);
+        i += dollarTag.length - 1;
+        inDollar = false;
+      }
+      continue;
+    }
+    if (c === "'" && sql[i - 1] !== "\\") inString = !inString;
+    if (!inString && c === "$") {
+      const m = sql.slice(i).match(/^\$[a-zA-Z_]*\$/);
+      if (m) {
+        dollarTag = m[0];
+        buf += dollarTag.slice(1);
+        i += dollarTag.length - 1;
+        inDollar = true;
+        continue;
+      }
+    }
+    if (!inString && c === ";") {
+      stmts.push(buf);
+      buf = "";
     }
   }
+  if (buf.trim()) stmts.push(buf);
+  return stmts;
 }
 
-// --- 4 & 5: pg_graphql must not be re-enabled ---
-{
-  const id = "SUPA_pg_graphql_exposed";
-  // Look at the LATEST state: was pg_graphql dropped and never re-created after?
-  const events = [];
+/** Return the set of policies (by table + name) that are effective at the end
+ *  of all migrations — i.e. created and not later dropped or replaced without
+ *  a follow-up CREATE. */
+function effectivePolicies() {
+  const effective = new Map(); // key: `${table}::${name}` -> { sql, table, name }
   for (const m of migrations) {
-    const lower = m.sql.toLowerCase();
-    const createIdx = lower.search(/create\s+extension[^;]*pg_graphql/);
-    const dropIdx = lower.search(/drop\s+extension[^;]*pg_graphql/);
-    if (createIdx !== -1) events.push({ file: m.file, at: createIdx, kind: "create" });
-    if (dropIdx !== -1) events.push({ file: m.file, at: dropIdx, kind: "drop" });
-  }
-  const last = events[events.length - 1];
-  if (last && last.kind === "create") {
-    fail(id, `pg_graphql extension is re-created in migration ${last.file}.`);
-  } else {
-    ok(id, "pg_graphql extension is not enabled by any active migration.");
-  }
-}
-
-// --- 6: no broad SELECT policy on storage.objects for the "mods" bucket ---
-{
-  const id = "SUPA_public_bucket_allows_listing";
-  // Flag CREATE POLICY on storage.objects that references bucket_id = 'mods' with FOR SELECT (or ALL)
-  // and does not scope by owner = auth.uid().
-  const policyRe = /create\s+policy[\s\S]*?on\s+storage\.objects[\s\S]*?;/gi;
-  let offenders = [];
-  for (const m of migrations) {
-    const matches = m.sql.match(policyRe) || [];
-    for (const p of matches) {
-      const lower = p.toLowerCase();
-      const touchesMods = /bucket_id\s*=\s*'mods'/.test(lower);
-      const isSelect = /for\s+(select|all)/.test(lower);
-      const ownerScoped = /owner\s*=\s*auth\.uid\(\)/.test(lower);
-      // Check whether a later migration DROPs this policy by name
-      const nameMatch = p.match(/create\s+policy\s+"([^"]+)"/i);
-      const policyName = nameMatch?.[1];
-      const droppedLater = policyName &&
-        new RegExp(`drop\\s+policy[^;]*"${policyName.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}"`, "i").test(
-          migrations.slice(migrations.findIndex((x) => x.file === m.file) + 1).map((x) => x.sql).join("\n")
-        );
-      if (touchesMods && isSelect && !ownerScoped && !droppedLater) {
-        offenders.push(`${m.file}: ${policyName ?? "<unnamed>"}`);
+    for (const stmt of splitStatements(m.sql)) {
+      const s = stmt.trim();
+      const createMatch = s.match(
+        /^create\s+policy\s+"([^"]+)"\s+on\s+([a-z_.]+)/i
+      );
+      const dropMatch = s.match(
+        /^drop\s+policy(?:\s+if\s+exists)?\s+"([^"]+)"\s+on\s+([a-z_.]+)/i
+      );
+      if (dropMatch) {
+        effective.delete(`${dropMatch[2].toLowerCase()}::${dropMatch[1]}`);
+      }
+      if (createMatch) {
+        const key = `${createMatch[2].toLowerCase()}::${createMatch[1]}`;
+        effective.set(key, { sql: s, table: createMatch[2].toLowerCase(), name: createMatch[1] });
       }
     }
   }
+  return [...effective.values()];
+}
+
+const policies = effectivePolicies();
+
+// --- handle_new_user must not be EXECUTE-granted to anon/authenticated/PUBLIC ---
+{
+  const id = "SUPA_security_definer_function_executable";
+  const stmts = splitStatements(allSql).map((s) => s.trim());
+  const badGrant = stmts.some((s) =>
+    /^grant\s+execute[\s\S]*handle_new_user[\s\S]*to\s+[\s\S]*(anon|authenticated|public)/i.test(s)
+  );
+  const hasRevoke = stmts.some((s) =>
+    /^revoke\s+execute[\s\S]*handle_new_user[\s\S]*from\s+[\s\S]*(public|anon|authenticated)/i.test(s)
+  );
+  if (badGrant) fail(id, "A migration GRANTs EXECUTE on handle_new_user to anon/authenticated/PUBLIC.");
+  else if (!hasRevoke) fail(id, "No REVOKE EXECUTE on handle_new_user from PUBLIC/anon/authenticated found.");
+  else ok(id, "handle_new_user execute privileges are revoked from anon/authenticated/PUBLIC.");
+}
+
+// --- Leaked password protection (HIBP) enabled in config.toml ---
+{
+  const id = "SUPA_auth_leaked_password_protection";
+  const cfg = existsSync(CONFIG_TOML) ? readFileSync(CONFIG_TOML, "utf8") : "";
+  if (/(enable_password_hibp|password_hibp_enabled)\s*=\s*true/i.test(cfg)) {
+    ok(id, "Leaked password protection (HIBP) is enabled in supabase/config.toml.");
+  } else {
+    fail(id, "supabase/config.toml must set enable_password_hibp = true under [auth].");
+  }
+}
+
+// --- pg_graphql extension must not be effectively enabled ---
+{
+  const id = "SUPA_pg_graphql_exposed";
+  let enabled = false;
+  for (const m of migrations) {
+    for (const s of splitStatements(m.sql).map((x) => x.trim())) {
+      if (/^create\s+extension[^;]*pg_graphql/i.test(s)) enabled = true;
+      if (/^drop\s+extension[^;]*pg_graphql/i.test(s)) enabled = false;
+    }
+  }
+  if (enabled) fail(id, "pg_graphql extension is enabled by the latest migration state.");
+  else ok(id, "pg_graphql extension is not enabled by any active migration.");
+}
+
+// --- No broad SELECT policy on storage.objects for the "mods" bucket ---
+{
+  const id = "SUPA_public_bucket_allows_listing";
+  const offenders = policies.filter((p) => {
+    if (p.table !== "storage.objects") return false;
+    const lower = p.sql.toLowerCase();
+    if (!/bucket_id\s*=\s*'mods'/.test(lower)) return false;
+    if (!/for\s+(select|all)/.test(lower)) return false;
+    // Owner/user scoping via storage.foldername or owner column is acceptable.
+    const scoped =
+      /storage\.foldername\(name\)\)\[1\]\s*=\s*auth\.uid\(\)::text/.test(lower) ||
+      /owner\s*=\s*auth\.uid\(\)/.test(lower);
+    return !scoped;
+  });
   if (offenders.length) {
-    fail(id, `Broad SELECT policy on storage.objects for "mods" bucket found: ${offenders.join(", ")}`);
+    fail(
+      id,
+      `Unrestricted SELECT policy on storage.objects for "mods" bucket: ${offenders
+        .map((o) => `"${o.name}"`)
+        .join(", ")}`
+    );
   } else {
     ok(id, `No unrestricted SELECT policy on storage.objects for "mods" bucket.`);
   }
 }
 
-// --- 7: mods UPDATE policy must have WITH CHECK ---
+// --- public.mods UPDATE policy must include WITH CHECK ---
 {
   const id = "mods_missing_update_check";
-  const policyRe = /create\s+policy[\s\S]*?on\s+public\.mods[\s\S]*?;/gi;
-  const updatePolicies = (allSql.match(policyRe) || []).filter((p) =>
-    /for\s+(update|all)/i.test(p)
+  const updatePolicies = policies.filter(
+    (p) => p.table === "public.mods" && /for\s+(update|all)/i.test(p.sql)
   );
   if (updatePolicies.length === 0) {
-    fail(id, "No UPDATE policy on public.mods found (expected one with WITH CHECK).");
+    fail(id, "No effective UPDATE policy on public.mods found (expected one with WITH CHECK).");
   } else {
-    const missing = updatePolicies.filter((p) => !/with\s+check\s*\(/i.test(p));
+    const missing = updatePolicies.filter((p) => !/with\s+check\s*\(/i.test(p.sql));
     if (missing.length) {
-      fail(id, `An UPDATE/ALL policy on public.mods is missing WITH CHECK clause.`);
+      fail(
+        id,
+        `UPDATE policy on public.mods is missing WITH CHECK: ${missing.map((p) => `"${p.name}"`).join(", ")}`
+      );
     } else {
-      ok(id, "All UPDATE/ALL policies on public.mods include a WITH CHECK clause.");
+      ok(id, "Effective UPDATE policies on public.mods include a WITH CHECK clause.");
     }
   }
 }
