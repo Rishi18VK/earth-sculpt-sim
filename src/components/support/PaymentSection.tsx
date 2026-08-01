@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Copy, Check, Smartphone, QrCode } from "lucide-react";
 import { toast } from "sonner";
 
-const UPI_ID = "terraexplorer@upi";
+const UPI_ID = "risshit23@ptaxis";
 
 const UPI_APPS = [
   { name: "Google Pay", color: "from-[hsl(210,80%,50%)] to-[hsl(145,60%,45%)]", icon: "💳" },
