@@ -1,7 +1,8 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Heart, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import confetti from "canvas-confetti";
+import { toast } from "sonner";
 
 import SupportHeader from "@/components/support/SupportHeader";
 import DonationCards from "@/components/support/DonationCards";
@@ -16,7 +17,6 @@ export default function Support() {
   const [selectedSubAmount, setSelectedSubAmount] = useState(10);
   const [customAmount, setCustomAmount] = useState("");
   const [showThankYou, setShowThankYou] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const getAmount = useCallback(() => {
     if (customAmount && Number(customAmount) > 0) return Number(customAmount);
@@ -36,21 +36,12 @@ export default function Support() {
     setTimeout(() => confetti({ particleCount: 80, spread: 120, origin: { y: 0.5 } }), 350);
   };
 
-  const playThankYouSound = () => {
-    try {
-      if (!audioRef.current) {
-        audioRef.current = new Audio("/sounds/wow-beautiful-audio-meme-download.mp3");
-      }
-      audioRef.current.currentTime = 0;
-      audioRef.current.volume = 0.6;
-      audioRef.current.play().catch(() => {});
-    } catch { /* silent */ }
-  };
-
   const handleDonate = () => {
     setShowThankYou(true);
     fireConfetti();
-    playThankYouSound();
+    toast.success("Thank you for supporting Terra Explorer ❤️", {
+      description: "Your contribution keeps the project growing.",
+    });
     setTimeout(() => setShowThankYou(false), 4500);
   };
 
