@@ -18,6 +18,7 @@ import ModsPage from "./pages/Mods";
 import Profile from "./pages/Profile";
 import SettingsPage from "./pages/Settings";
 import Community from "./pages/Community";
+import Admin from "./pages/Admin";
 import AppShell from "@/components/shell/AppShell";
 import LoadingScreen from "@/components/shell/LoadingScreen";
 
@@ -26,7 +27,7 @@ const queryClient = new QueryClient();
 function Shell() {
   const location = useLocation();
   // Full-immersive routes bypass the shell chrome entirely
-  const immersive = ["/explore", "/auth", "/.lovable/oauth/consent"].some(p =>
+  const immersive = ["/explore", "/auth", "/admin", "/.lovable/oauth/consent"].some(p =>
     location.pathname === p || location.pathname.startsWith(p + "/")
   );
   const content = (
@@ -42,6 +43,7 @@ function Shell() {
       <Route path="/support" element={<Support />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/auth" element={<Auth />} />
+      <Route path="/admin" element={<Admin />} />
       <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
