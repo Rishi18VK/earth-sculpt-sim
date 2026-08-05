@@ -18,6 +18,7 @@ import ModsPage from "./pages/Mods";
 import Profile from "./pages/Profile";
 import SettingsPage from "./pages/Settings";
 import Community from "./pages/Community";
+import Admin from "./pages/Admin";
 import AppShell from "@/components/shell/AppShell";
 import LoadingScreen from "@/components/shell/LoadingScreen";
 
