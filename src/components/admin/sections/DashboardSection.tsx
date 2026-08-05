@@ -1,6 +1,6 @@
 import { Users, Wifi, Eye, UserPlus, Activity, IndianRupee, Mountain, Landmark, Download, ShieldCheck, Tag } from "lucide-react";
-import { AdminSection, StatCard, Panel, Pill, Sparkline } from "./AdminUI";
-import { mockOverview, mockAnalytics, inr } from "@/lib/admin/mock-data";
+import { AdminSection, StatCard, Panel, Pill, Sparkline, inr } from "../AdminUI";
+import { mockOverview, mockAnalytics } from "@/lib/admin/mock-data";
 
 export default function DashboardSection() {
   const o = mockOverview;
