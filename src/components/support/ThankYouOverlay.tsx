@@ -7,20 +7,54 @@ export default function ThankYouOverlay({ visible, badgeEarned }: Props) {
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-card/90 backdrop-blur-2xl border border-border/30 rounded-3xl p-8 text-center shadow-2xl max-w-xs mx-4 animate-in zoom-in-95 duration-400">
-        <div className="text-6xl mb-4 animate-bounce">🎉</div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Thank you!</h2>
-        <p className="text-sm text-muted-foreground mb-3">
-          Your support means the world <span className="text-destructive">❤️</span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-md animate-fade-in">
+      <div className="bg-card/90 backdrop-blur-2xl border border-border/30 rounded-3xl p-8 text-center shadow-2xl max-w-xs mx-4 animate-scale-in">
+        {/* Animated success checkmark */}
+        <div className="mx-auto mb-5 h-16 w-16">
+          <svg viewBox="0 0 52 52" className="h-16 w-16">
+            <circle
+              cx="26"
+              cy="26"
+              r="24"
+              fill="none"
+              strokeWidth="2.5"
+              className="stroke-primary"
+              style={{
+                strokeDasharray: 151,
+                strokeDashoffset: 151,
+                animation: "check-circle 0.6s ease-out forwards",
+              }}
+            />
+            <path
+              d="M14 27l8 8 16-16"
+              fill="none"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="stroke-primary"
+              style={{
+                strokeDasharray: 48,
+                strokeDashoffset: 48,
+                animation: "check-mark 0.35s 0.5s ease-out forwards",
+              }}
+            />
+          </svg>
+          <style>{`
+            @keyframes check-circle { to { stroke-dashoffset: 0; } }
+            @keyframes check-mark { to { stroke-dashoffset: 0; } }
+          `}</style>
+        </div>
+
+        <h2 className="text-2xl font-bold text-foreground mb-2">Thank you</h2>
+        <p className="text-sm text-muted-foreground">
+          Your support keeps Terra Explorer growing.
         </p>
         {badgeEarned && (
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[hsl(260,60%,55%)/0.15] to-[hsl(200,80%,50%)/0.15] border border-primary/20 mt-2">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mt-4 animate-fade-in">
             <span className="text-lg">{badgeEarned}</span>
-            <span className="text-xs font-semibold text-foreground">Badge Earned!</span>
+            <span className="text-xs font-semibold text-foreground">Badge earned</span>
           </div>
         )}
-        <p className="text-[10px] text-muted-foreground mt-3">Your generosity keeps this project alive.</p>
       </div>
     </div>
   );
