@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Panel, DataTable, Pill, fmtDateTime } from "../AdminUI";
+import { AdminSection, DataTable, Pill, fmtDateTime } from "../AdminUI";
 
 type AppRole = "admin" | "moderator" | "user";
 type RoleRow = { id: string; user_id: string; role: AppRole; created_at: string; email: string };
@@ -79,7 +79,7 @@ export default function RoleManager() {
   };
 
   return (
-    <Panel
+    <AdminSection
       title="Role management"
       description="Assign or revoke privileges. Verified server-side — admin role required."
     >
@@ -150,6 +150,6 @@ export default function RoleManager() {
           )}
         </DataTable>
       )}
-    </Panel>
+    </AdminSection>
   );
 }
