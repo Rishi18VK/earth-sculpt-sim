@@ -4,7 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { AdminSection, DataTable, Pill, fmtDate, fmtDateTime } from "../AdminUI";
+import RoleManager from "./RoleManager";
 import { mockUsers, type AdminUser } from "@/lib/admin/mock-data";
+
 
 const statusTone = { active: "success", suspended: "warning", banned: "danger" } as const;
 const roleTone = { admin: "info", moderator: "info", user: "neutral" } as const;
