@@ -95,6 +95,7 @@ export default function UsersSection() {
           </tr>
         )}
       </DataTable>
-    </AdminSection>
+      </AdminSection>
+    </div>
   );
 }
