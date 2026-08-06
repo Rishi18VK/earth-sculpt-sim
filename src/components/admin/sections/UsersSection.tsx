@@ -33,7 +33,9 @@ export default function UsersSection() {
   };
 
   return (
-    <AdminSection
+    <div className="space-y-8">
+      <RoleManager />
+      <AdminSection
       title="Users"
       description={`${users.length} registered accounts.`}
       actions={
