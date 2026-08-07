@@ -44,6 +44,78 @@ export type Database = {
         }
         Relationships: []
       }
+      announcements: {
+        Row: {
+          audience: string
+          body: string
+          channel: string
+          created_at: string
+          id: string
+          published_at: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audience?: string
+          body?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: string
+          body?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      app_settings: {
+        Row: {
+          created_at: string
+          features: Json
+          id: boolean
+          maintenance_mode: boolean
+          primary_color: string
+          site_name: string
+          support_email: string
+          tagline: string
+          theme: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          features?: Json
+          id?: boolean
+          maintenance_mode?: boolean
+          primary_color?: string
+          site_name?: string
+          support_email?: string
+          tagline?: string
+          theme?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          features?: Json
+          id?: boolean
+          maintenance_mode?: boolean
+          primary_color?: string
+          site_name?: string
+          support_email?: string
+          tagline?: string
+          theme?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       character_customization: {
         Row: {
           color: string
@@ -71,6 +143,98 @@ export type Database = {
           trail?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      community_likes: {
+        Row: {
+          created_at: string
+          id: string
+          screenshot_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          screenshot_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          screenshot_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_likes_screenshot_id_fkey"
+            columns: ["screenshot_id"]
+            isOneToOne: false
+            referencedRelation: "community_screenshots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_screenshots: {
+        Row: {
+          biome: string
+          created_at: string
+          id: string
+          image_url: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          biome?: string
+          created_at?: string
+          id?: string
+          image_url: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          biome?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      content_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          kind: string
+          media_count: number
+          published: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          kind?: string
+          media_count?: number
+          published?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          kind?: string
+          media_count?: number
+          published?: boolean
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -128,6 +292,39 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback: {
+        Row: {
+          created_at: string
+          detail: string
+          id: string
+          status: string
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string
+          id?: string
+          status?: string
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string
+          id?: string
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       inventory_items: {
         Row: {
           created_at: string
@@ -164,11 +361,14 @@ export type Database = {
           config: Json
           created_at: string
           description: string | null
+          downloads: number
           enabled: boolean
+          featured: boolean
           id: string
           mod_type: string
           model_path: string | null
           name: string
+          status: string
           updated_at: string
           user_id: string | null
           version: string
@@ -178,11 +378,14 @@ export type Database = {
           config?: Json
           created_at?: string
           description?: string | null
+          downloads?: number
           enabled?: boolean
+          featured?: boolean
           id?: string
           mod_type?: string
           model_path?: string | null
           name: string
+          status?: string
           updated_at?: string
           user_id?: string | null
           version?: string
@@ -192,11 +395,14 @@ export type Database = {
           config?: Json
           created_at?: string
           description?: string | null
+          downloads?: number
           enabled?: boolean
+          featured?: boolean
           id?: string
           mod_type?: string
           model_path?: string | null
           name?: string
+          status?: string
           updated_at?: string
           user_id?: string | null
           version?: string
@@ -207,26 +413,59 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          country: string | null
           created_at: string
           display_name: string | null
           id: string
+          status: string
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          country?: string | null
           created_at?: string
           display_name?: string | null
           id: string
+          status?: string
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          country?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      security_events: {
+        Row: {
+          actor: string
+          created_at: string
+          detail: string
+          id: string
+          ip: string | null
+          kind: string
+        }
+        Insert: {
+          actor?: string
+          created_at?: string
+          detail?: string
+          id?: string
+          ip?: string | null
+          kind?: string
+        }
+        Update: {
+          actor?: string
+          created_at?: string
+          detail?: string
+          id?: string
+          ip?: string | null
+          kind?: string
         }
         Relationships: []
       }
@@ -387,6 +626,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_list_users: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          country: string
+          display_name: string
+          email: string
+          id: string
+          last_login_at: string
+          registered_at: string
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+          xp: number
+        }[]
+      }
+      get_leaderboard: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_url: string
+          collectibles_found: number
+          display_name: string
+          distance_explored: number
+          level: number
+          terrains_generated: number
+          user_id: string
+          xp: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
