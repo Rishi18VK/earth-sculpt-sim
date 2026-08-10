@@ -468,3 +468,131 @@ export function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+/* ---------------------------------------------------------------- players */
+
+export interface PlayerRow {
+  id: string;
+  displayName: string;
+  avatarUrl: string | null;
+  xp: number;
+  level: number;
+  distance: number;
+  collectibles: number;
+  terrains: number;
+  minutes: number;
+  status: string;
+}
+
+export async function listPlayers(): Promise<PlayerRow[]> {
+  const [profilesRes, statsRes, progressRes] = await Promise.all([
+    supabase.from("profiles").select("id, display_name, avatar_url, status"),
+    supabase.from("user_stats").select("id, distance_explored, collectibles_found, terrains_generated, time_spent_seconds"),
+    supabase.from("user_progress").select("user_id, xp, level"),
+  ]);
+  const stats = new Map((statsRes.data ?? []).map((s) => [s.id, s]));
+  const prog = new Map((progressRes.data ?? []).map((p) => [p.user_id, p]));
+  return (profilesRes.data ?? [])
+    .map((p) => {
+      const s = stats.get(p.id);
+      const g = prog.get(p.id);
+      return {
+        id: p.id,
+        displayName: p.display_name ?? "Explorer",
+        avatarUrl: p.avatar_url,
+        xp: g?.xp ?? 0,
+        level: g?.level ?? 1,
+        distance: Number(s?.distance_explored ?? 0),
+        collectibles: s?.collectibles_found ?? 0,
+        terrains: s?.terrains_generated ?? 0,
+        minutes: Math.round((s?.time_spent_seconds ?? 0) / 60),
+        status: p.status ?? "active",
+      };
+    })
+    .sort((a, b) => b.xp - a.xp);
+}
+
+export async function grantXp(userId: string, amount: number) {
+  const { data } = await supabase.from("user_progress").select("xp, level").eq("user_id", userId).maybeSingle();
+  const xp = Math.max(0, (data?.xp ?? 0) + amount);
+  const { error } = await supabase
+    .from("user_progress")
+    .update({ xp, level: Math.max(1, Math.floor(xp / 500) + 1) })
+    .eq("user_id", userId);
+  if (error) throw error;
+  await logSecurityEvent("admin_action", `Adjusted XP for ${userId} by ${amount}`);
+}
+
+/* ---------------------------------------------------------- media library */
+
+export interface MediaItem {
+  id: string;
+  title: string;
+  imageUrl: string;
+  biome: string;
+  author: string;
+  createdAt: string;
+}
+
+export async function listMedia(): Promise<MediaItem[]> {
+  const { data, error } = await supabase
+    .from("community_screenshots")
+    .select("id, title, image_url, biome, created_at, user_id")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  const rows = data ?? [];
+  const names = await displayNames([...new Set(rows.map((r) => r.user_id))]);
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    imageUrl: r.image_url,
+    biome: r.biome,
+    author: names[r.user_id] ?? "Explorer",
+    createdAt: r.created_at,
+  }));
+}
+
+export async function deleteMedia(id: string) {
+  const { error } = await supabase.from("community_screenshots").delete().eq("id", id);
+  if (error) throw error;
+  await logSecurityEvent("admin_action", `Removed screenshot ${id}`);
+}
+
+export async function deleteContent(id: string) {
+  const { error } = await supabase.from("content_items").delete().eq("id", id);
+  if (error) throw error;
+}
+
+/* --------------------------------------------------------- system health */
+
+export interface HealthCheck {
+  name: string;
+  ok: boolean;
+  detail: string;
+  ms: number;
+}
+
+async function timed(name: string, fn: () => Promise<unknown>): Promise<HealthCheck> {
+  const t0 = performance.now();
+  try {
+    await fn();
+    return { name, ok: true, detail: "Operational", ms: Math.round(performance.now() - t0) };
+  } catch (e) {
+    return { name, ok: false, detail: e instanceof Error ? e.message : "Unavailable", ms: Math.round(performance.now() - t0) };
+  }
+}
+
+export async function getSystemHealth(): Promise<HealthCheck[]> {
+  const must = async (p: PromiseLike<{ error: unknown }>) => {
+    const { error } = await p;
+    if (error) throw error;
+  };
+  return Promise.all([
+    timed("Database", () => must(supabase.from("profiles").select("id", { count: "exact", head: true }))),
+    timed("Authentication", () => supabase.auth.getSession()),
+    timed("Storage", () => must(supabase.storage.from("mods").list("", { limit: 1 }).then((r) => ({ error: null })))),
+    timed("Leaderboard RPC", () => must(supabase.rpc("get_leaderboard", { _limit: 1 }))),
+    timed("Admin RPC", () => must(supabase.rpc("admin_list_users"))),
+    timed("Settings", () => getAppSettings()),
+  ]);
+}

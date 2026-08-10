@@ -1,27 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Save, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { AdminSection, Panel, Pill } from "../AdminUI";
-import { mockSettings } from "@/lib/admin/mock-data";
+import { AdminSection, Panel, Pill, StateBlock } from "../AdminUI";
+import { useAsyncData } from "@/hooks/use-async-data";
+import { getAppSettings, saveAppSettings, type AppSettings } from "@/lib/admin/admin-data";
 
 export default function SettingsSection() {
-  const [settings, setSettings] = useState(mockSettings);
+  const { data, loading, error } = useAsyncData(getAppSettings);
+  const [settings, setSettings] = useState<AppSettings | null>(null);
+
+  useEffect(() => setSettings(data), [data]);
+
+  const save = async (next?: AppSettings) => {
+    const s = next ?? settings;
+    if (!s) return;
+    try {
+      await saveAppSettings(s);
+      toast.success("Settings saved");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Save failed");
+    }
+  };
+
+  if (!settings) {
+    return (
+      <AdminSection title="Settings" description="General configuration, branding and feature flags.">
+        <StateBlock loading={loading} error={error} empty={!settings} />
+      </AdminSection>
+    );
+  }
 
   const toggleFeature = (key: string) =>
-    setSettings((s) => ({
-      ...s,
-      features: s.features.map((f) => (f.key === key ? { ...f, enabled: !f.enabled } : f)),
-    }));
+    setSettings((s) =>
+      s ? { ...s, features: s.features.map((f) => (f.key === key ? { ...f, enabled: !f.enabled } : f)) } : s
+    );
 
   return (
     <AdminSection
       title="Settings"
       description="General configuration, branding and feature flags."
       actions={
-        <Button className="rounded-xl premium-gradient border-0 text-white gap-2" onClick={() => toast.success("Settings saved")}>
+        <Button className="rounded-xl premium-gradient border-0 text-white gap-2" onClick={() => save()}>
           <Save className="h-4 w-4" /> Save changes
         </Button>
       }
@@ -29,16 +51,16 @@ export default function SettingsSection() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel className="space-y-3">
           <h2 className="font-display font-semibold">General</h2>
-          {[
-            { label: "Site name", key: "siteName" as const },
-            { label: "Tagline", key: "tagline" as const },
-            { label: "Support email", key: "supportEmail" as const },
-          ].map((f) => (
+          {([
+            { label: "Site name", key: "siteName" },
+            { label: "Tagline", key: "tagline" },
+            { label: "Support email", key: "supportEmail" },
+          ] as const).map((f) => (
             <div key={f.key} className="space-y-1.5">
               <label className="text-eyebrow text-muted-foreground">{f.label}</label>
               <Input
                 value={settings[f.key]}
-                onChange={(e) => setSettings((s) => ({ ...s, [f.key]: e.target.value }))}
+                onChange={(e) => setSettings((s) => (s ? { ...s, [f.key]: e.target.value } : s))}
                 className="rounded-xl"
               />
             </div>
@@ -53,13 +75,13 @@ export default function SettingsSection() {
               <input
                 type="color"
                 value={settings.primaryColor}
-                onChange={(e) => setSettings((s) => ({ ...s, primaryColor: e.target.value }))}
+                onChange={(e) => setSettings((s) => (s ? { ...s, primaryColor: e.target.value } : s))}
                 aria-label="Primary color"
                 className="h-10 w-14 rounded-lg bg-transparent border border-input cursor-pointer"
               />
               <Input
                 value={settings.primaryColor}
-                onChange={(e) => setSettings((s) => ({ ...s, primaryColor: e.target.value }))}
+                onChange={(e) => setSettings((s) => (s ? { ...s, primaryColor: e.target.value } : s))}
                 className="rounded-xl font-mono"
               />
             </div>
@@ -68,7 +90,7 @@ export default function SettingsSection() {
             <label className="text-eyebrow text-muted-foreground">Theme</label>
             <select
               value={settings.theme}
-              onChange={(e) => setSettings((s) => ({ ...s, theme: e.target.value as typeof s.theme }))}
+              onChange={(e) => setSettings((s) => (s ? { ...s, theme: e.target.value as AppSettings["theme"] } : s))}
               aria-label="Theme"
               className="w-full rounded-xl bg-background border border-input px-3 py-2 text-sm"
             >
@@ -81,6 +103,7 @@ export default function SettingsSection() {
 
         <Panel className="space-y-3">
           <h2 className="font-display font-semibold">Feature toggles</h2>
+          {settings.features.length === 0 && <p className="text-sm text-muted-foreground">No feature flags configured.</p>}
           {settings.features.map((f) => (
             <div key={f.key} className="flex items-center justify-between">
               <span className="text-sm">{f.label}</span>
@@ -103,8 +126,9 @@ export default function SettingsSection() {
             <Switch
               checked={settings.maintenanceMode}
               onCheckedChange={(v) => {
-                setSettings((s) => ({ ...s, maintenanceMode: v }));
-                toast.success(v ? "Maintenance mode enabled" : "Maintenance mode disabled");
+                const next = { ...settings, maintenanceMode: v };
+                setSettings(next);
+                save(next);
               }}
               aria-label="Maintenance mode"
             />

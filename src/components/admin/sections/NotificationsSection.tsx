@@ -4,32 +4,41 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { AdminSection, Panel, Pill, fmtDate } from "../AdminUI";
-import { mockAnnouncements, type Announcement } from "@/lib/admin/mock-data";
+import { AdminSection, Panel, Pill, StateBlock, fmtDate } from "../AdminUI";
+import { useAsyncData } from "@/hooks/use-async-data";
+import { listAnnouncements, createAnnouncement, type Announcement } from "@/lib/admin/admin-data";
 
 export default function NotificationsSection() {
-  const [items, setItems] = useState<Announcement[]>(mockAnnouncements);
+  const { data, loading, error, refetch } = useAsyncData(listAnnouncements);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [channel, setChannel] = useState<Announcement["channel"]>("in_app");
   const [audience, setAudience] = useState<Announcement["audience"]>("all");
+  const [busy, setBusy] = useState(false);
 
-  const publish = () => {
+  const items = data ?? [];
+
+  const publish = async (publishNow: boolean) => {
     if (!title.trim() || !body.trim()) {
       toast.error("Title and message are required");
       return;
     }
-    setItems((prev) => [
-      { id: `an_${Date.now()}`, title: title.trim(), body: body.trim(), audience, channel, publishedAt: new Date().toISOString() },
-      ...prev,
-    ]);
-    setTitle("");
-    setBody("");
-    toast.success("Announcement published");
+    setBusy(true);
+    try {
+      await createAnnouncement({ title: title.trim(), body: body.trim(), audience, channel, publish: publishNow });
+      setTitle("");
+      setBody("");
+      toast.success(publishNow ? "Announcement published" : "Draft saved");
+      refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to save");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
-    <AdminSection title="Notifications" description="Announcements, push notifications and release notes.">
+    <AdminSection title="Notifications" description="Announcements, in-app messages and release notes.">
       <div className="grid gap-4 lg:grid-cols-5">
         <Panel className="lg:col-span-2 space-y-3">
           <h2 className="font-display font-semibold flex items-center gap-2">
@@ -59,12 +68,18 @@ export default function NotificationsSection() {
               <option value="admins">Admins</option>
             </select>
           </div>
-          <Button className="w-full rounded-xl premium-gradient border-0 text-white gap-2" onClick={publish}>
-            <Send className="h-4 w-4" /> Publish
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="secondary" className="flex-1 rounded-xl" disabled={busy} onClick={() => publish(false)}>
+              Save draft
+            </Button>
+            <Button className="flex-1 rounded-xl premium-gradient border-0 text-white gap-2" disabled={busy} onClick={() => publish(true)}>
+              <Send className="h-4 w-4" /> Publish
+            </Button>
+          </div>
         </Panel>
 
         <div className="lg:col-span-3 space-y-3">
+          <StateBlock loading={loading} error={error} empty={!items.length} />
           {items.map((a) => (
             <Panel key={a.id} className="space-y-2">
               <div className="flex items-start justify-between gap-3">

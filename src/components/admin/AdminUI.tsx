@@ -156,3 +156,23 @@ export const fmtDateTime = (iso: string) =>
   new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
 export const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+
+export function StateRow({ loading, error, empty, cols = 1 }: { loading: boolean; error: string | null; empty?: boolean; cols?: number }) {
+  if (!loading && !error && !empty) return null;
+  return (
+    <tr>
+      <td colSpan={cols} className="px-4 py-10 text-center text-muted-foreground">
+        {loading ? "Loading…" : error ? <span className="text-destructive">{error}</span> : "Nothing here yet."}
+      </td>
+    </tr>
+  );
+}
+
+export function StateBlock({ loading, error, empty }: { loading: boolean; error: string | null; empty?: boolean }) {
+  if (!loading && !error && !empty) return null;
+  return (
+    <div className="glass-card rounded-2xl p-10 text-center text-muted-foreground">
+      {loading ? "Loading…" : error ? <span className="text-destructive">{error}</span> : "Nothing here yet."}
+    </div>
+  );
+}
