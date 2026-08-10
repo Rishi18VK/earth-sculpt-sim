@@ -1,24 +1,31 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { Check, X, Star, Upload, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { AdminSection, DataTable, Pill, StatCard, fmtDate } from "../AdminUI";
-import { mockMods, type ModEntry } from "@/lib/admin/mock-data";
+import { AdminSection, DataTable, Pill, StatCard, StateRow, fmtDate } from "../AdminUI";
+import { useAsyncData } from "@/hooks/use-async-data";
+import { listMods, updateMod, type ModEntry } from "@/lib/admin/admin-data";
 
 const tone = { approved: "success", pending: "warning", rejected: "danger" } as const;
 
 export default function ModsSection() {
-  const [mods, setMods] = useState<ModEntry[]>(mockMods);
+  const { data, loading, error, refetch } = useAsyncData(listMods);
+  const mods = useMemo(() => data ?? [], [data]);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const update = (id: string, patch: Partial<ModEntry>, msg: string) => {
-    setMods((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));
-    toast.success(msg);
+  const update = async (id: string, patch: Partial<Pick<ModEntry, "status" | "featured">>, msg: string) => {
+    try {
+      await updateMod(id, patch);
+      toast.success(msg);
+      refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Update failed");
+    }
   };
 
   return (
     <AdminSection
-      title="Mods"
+      title="Mod Management"
       description="Review, approve and feature community mods."
       actions={
         <>
@@ -28,22 +35,7 @@ export default function ModsSection() {
             accept=".zip,.glb"
             className="hidden"
             onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (!f) return;
-              setMods((prev) => [
-                {
-                  id: `mod_${Date.now()}`,
-                  name: f.name.replace(/\.(zip|glb)$/i, ""),
-                  author: "Admin upload",
-                  version: "1.0.0",
-                  status: "pending",
-                  downloads: 0,
-                  featured: false,
-                  submittedAt: new Date().toISOString(),
-                },
-                ...prev,
-              ]);
-              toast.success("Mod queued for review");
+              if (e.target.files?.[0]) toast.info("Upload mods from the public Mods page — they arrive here for review.");
               e.target.value = "";
             }}
           />
@@ -61,6 +53,7 @@ export default function ModsSection() {
       </div>
 
       <DataTable head={["Mod", "Version", "Status", "Downloads", "Submitted", "Actions"]}>
+        <StateRow loading={loading} error={error} empty={!mods.length} cols={6} />
         {mods.map((m) => (
           <tr key={m.id} className="hover:bg-foreground/5 transition-colors">
             <td className="px-4 py-3">
