@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-export type AppRole = "admin" | "moderator" | "user";
+export type AppRole = "admin" | "super_admin" | "moderator" | "user";
 
 /**
  * Server-validated role check. Never trust localStorage for authorization.
@@ -36,10 +36,14 @@ export function useAdmin() {
     };
   }, [user, authLoading]);
 
+  const isSuperAdmin = roles.includes("super_admin");
+  const isAdmin = isSuperAdmin || roles.includes("admin");
+
   return {
     loading: loading || authLoading,
     roles,
-    isAdmin: roles.includes("admin"),
-    isModerator: roles.includes("moderator") || roles.includes("admin"),
+    isSuperAdmin,
+    isAdmin,
+    isModerator: isAdmin || roles.includes("moderator"),
   };
 }
