@@ -9,7 +9,7 @@ import { useAsyncData } from "@/hooks/use-async-data";
 import { listUsers, setUserStatus, type AdminUser } from "@/lib/admin/admin-data";
 
 const statusTone = { active: "success", suspended: "warning", banned: "danger" } as const;
-const roleTone = { admin: "info", moderator: "info", user: "neutral" } as const;
+const roleTone = { super_admin: "danger", admin: "info", moderator: "info", user: "neutral" } as const;
 
 export default function UsersSection() {
   const [query, setQuery] = useState("");

@@ -2,7 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3";
 
-const ROLES = ["admin", "moderator", "user"] as const;
+const ROLES = ["super_admin", "admin", "moderator", "user"] as const;
 
 const BodySchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("list") }),
@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
     }
 
     // revoke
-    if (body.user_id === callerId && body.role === "admin") {
+    if (body.user_id === callerId && (body.role === "admin" || body.role === "super_admin")) {
       return json({ error: "You cannot revoke your own admin role" }, 400);
     }
     const { error } = await admin

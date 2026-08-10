@@ -13,10 +13,10 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminSection, DataTable, Pill, fmtDateTime } from "../AdminUI";
 
-type AppRole = "admin" | "moderator" | "user";
+type AppRole = "super_admin" | "admin" | "moderator" | "user";
 type RoleRow = { id: string; user_id: string; role: AppRole; created_at: string; email: string };
 
-const tone = { admin: "danger", moderator: "info", user: "neutral" } as const;
+const tone = { super_admin: "danger", admin: "danger", moderator: "info", user: "neutral" } as const;
 
 export default function RoleManager() {
   const [rows, setRows] = useState<RoleRow[]>([]);
@@ -97,6 +97,7 @@ export default function RoleManager() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="super_admin">super_admin</SelectItem>
             <SelectItem value="admin">admin</SelectItem>
             <SelectItem value="moderator">moderator</SelectItem>
             <SelectItem value="user">user</SelectItem>
