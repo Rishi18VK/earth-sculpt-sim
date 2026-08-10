@@ -4,34 +4,52 @@ import { Link } from "react-router-dom";
 import {
   LayoutDashboard, Users, BarChart3, IndianRupee, Package, FileText,
   MessageSquare, Shield, Bell, Settings, Code2, Menu, X, ArrowLeft, Globe2,
+  Gamepad2, Mountain, MapPin, Heart, ScrollText, Bug, Images, Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { APP_VERSION } from "@/lib/admin/mock-data";
 import DashboardSection from "./sections/DashboardSection";
 import UsersSection from "./sections/UsersSection";
+import PlayersSection from "./sections/PlayersSection";
 import AnalyticsSection from "./sections/AnalyticsSection";
 import DonationsSection from "./sections/DonationsSection";
+import SupportersSection from "./sections/SupportersSection";
 import ModsSection from "./sections/ModsSection";
+import TerrainSection from "./sections/TerrainSection";
+import LandmarkSection from "./sections/LandmarkSection";
 import ContentSection from "./sections/ContentSection";
 import FeedbackSection from "./sections/FeedbackSection";
+import BugReportsSection from "./sections/BugReportsSection";
 import SecuritySection from "./sections/SecuritySection";
+import ActivityLogsSection from "./sections/ActivityLogsSection";
 import NotificationsSection from "./sections/NotificationsSection";
+import MediaSection from "./sections/MediaSection";
+import SystemHealthSection from "./sections/SystemHealthSection";
 import SettingsSection from "./sections/SettingsSection";
 import DeveloperSection from "./sections/DeveloperSection";
+import { APP_VERSION } from "@/lib/admin/admin-data";
 
 const NAV = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, Component: DashboardSection },
   { key: "users", label: "Users", icon: Users, Component: UsersSection },
-  { key: "analytics", label: "Analytics", icon: BarChart3, Component: AnalyticsSection },
-  { key: "donations", label: "Donations", icon: IndianRupee, Component: DonationsSection },
+  { key: "players", label: "Player Management", icon: Gamepad2, Component: PlayersSection },
+  { key: "terrain", label: "Terrain", icon: Mountain, Component: TerrainSection },
+  { key: "landmarks", label: "Landmarks", icon: MapPin, Component: LandmarkSection },
   { key: "mods", label: "Mods", icon: Package, Component: ModsSection },
+  { key: "donations", label: "Donations", icon: IndianRupee, Component: DonationsSection },
+  { key: "supporters", label: "Supporters", icon: Heart, Component: SupportersSection },
+  { key: "analytics", label: "Analytics", icon: BarChart3, Component: AnalyticsSection },
   { key: "content", label: "Content", icon: FileText, Component: ContentSection },
-  { key: "feedback", label: "Feedback", icon: MessageSquare, Component: FeedbackSection },
+  { key: "media", label: "Media Library", icon: Images, Component: MediaSection },
+  { key: "logs", label: "Activity Logs", icon: ScrollText, Component: ActivityLogsSection },
   { key: "security", label: "Security", icon: Shield, Component: SecuritySection },
+  { key: "bugs", label: "Bug Reports", icon: Bug, Component: BugReportsSection },
+  { key: "feedback", label: "Feedback", icon: MessageSquare, Component: FeedbackSection },
   { key: "notifications", label: "Notifications", icon: Bell, Component: NotificationsSection },
+  { key: "health", label: "System Health", icon: Activity, Component: SystemHealthSection },
   { key: "settings", label: "Settings", icon: Settings, Component: SettingsSection },
   { key: "developer", label: "Developer", icon: Code2, Component: DeveloperSection },
 ] as const;
+
 
 export default function AdminLayout() {
   const [active, setActive] = useState<string>("dashboard");
