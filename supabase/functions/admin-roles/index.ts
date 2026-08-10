@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
     }
 
     // revoke
-    if (body.user_id === callerId && body.role === "admin") {
+    if (body.user_id === callerId && (body.role === "admin" || body.role === "super_admin")) {
       return json({ error: "You cannot revoke your own admin role" }, 400);
     }
     const { error } = await admin
