@@ -3,6 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { levelFromXp } from "@/lib/tier-utils";
 
+/** Server-known XP actions. The client never sends an amount. */
+export type XpAction =
+  | "terrain_generated"
+  | "collectible_found"
+  | "landmark_visited"
+  | "screenshot_shared"
+  | "mod_published";
+
 export function useProgress() {
   const { user } = useAuth();
   const [xp, setXp] = useState(0);
@@ -21,13 +29,15 @@ export function useProgress() {
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const awardXp = useCallback(async (amount: number) => {
+  /** XP is computed and written server-side; the client only names the action. */
+  const awardXp = useCallback(async (reason: XpAction) => {
     if (!user) return;
-    const newXp = xp + amount;
-    const { level: lvl } = levelFromXp(newXp);
-    setXp(newXp); setLevel(lvl);
-    await supabase.from("user_progress").upsert({ user_id: user.id, xp: newXp, level: lvl }, { onConflict: "user_id" });
-  }, [user, xp]);
+    const { data, error } = await supabase.functions.invoke("game-progress", {
+      body: { action: "award_xp", reason },
+    });
+    if (error) return;
+    if (data?.xp != null) { setXp(data.xp); setLevel(data.level); }
+  }, [user]);
 
   const breakdown = levelFromXp(xp);
   return { xp, level, loading, awardXp, refresh, into: breakdown.into, needed: breakdown.needed };
