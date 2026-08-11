@@ -90,10 +90,25 @@ export const APP_VERSION = "2.4.0";
 
 /* ------------------------------------------------------------------ users */
 
+interface AdminUserRow {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+  avatar_url: string | null;
+  role: string | null;
+  status: string | null;
+  registered_at: string;
+  last_login_at: string | null;
+  xp: number | null;
+  country: string | null;
+}
+
 export async function listUsers(): Promise<AdminUser[]> {
-  const { data, error } = await supabase.rpc("admin_list_users");
+  const { data: res, error } = await supabase.functions.invoke("app-data", {
+    body: { action: "admin_list_users" },
+  });
   if (error) throw error;
-  return (data ?? []).map((u) => ({
+  return ((res?.data ?? []) as AdminUserRow[]).map((u) => ({
     id: u.id,
     displayName: u.display_name ?? "Explorer",
     email: u.email ?? "",
@@ -513,14 +528,10 @@ export async function listPlayers(): Promise<PlayerRow[]> {
 }
 
 export async function grantXp(userId: string, amount: number) {
-  const { data } = await supabase.from("user_progress").select("xp, level").eq("user_id", userId).maybeSingle();
-  const xp = Math.max(0, (data?.xp ?? 0) + amount);
-  const { error } = await supabase
-    .from("user_progress")
-    .update({ xp, level: Math.max(1, Math.floor(xp / 500) + 1) })
-    .eq("user_id", userId);
+  const { error } = await supabase.functions.invoke("game-progress", {
+    body: { action: "grant_xp", user_id: userId, amount },
+  });
   if (error) throw error;
-  await logSecurityEvent("admin_action", `Adjusted XP for ${userId} by ${amount}`);
 }
 
 /* ---------------------------------------------------------- media library */
@@ -591,8 +602,8 @@ export async function getSystemHealth(): Promise<HealthCheck[]> {
     timed("Database", () => must(supabase.from("profiles").select("id", { count: "exact", head: true }))),
     timed("Authentication", () => supabase.auth.getSession()),
     timed("Storage", () => must(supabase.storage.from("mods").list("", { limit: 1 }).then((r) => ({ error: null })))),
-    timed("Leaderboard RPC", () => must(supabase.rpc("get_leaderboard", { _limit: 1 }))),
-    timed("Admin RPC", () => must(supabase.rpc("admin_list_users"))),
+    timed("Leaderboard API", () => must(supabase.functions.invoke("app-data", { body: { action: "leaderboard", limit: 1 } }))),
+    timed("Admin API", () => must(supabase.functions.invoke("app-data", { body: { action: "admin_list_users" } }))),
     timed("Settings", () => getAppSettings()),
   ]);
 }
