@@ -29,12 +29,15 @@ export function useAchievements() {
     })();
   }, [user]);
 
+  /** The server re-verifies the unlock criteria before recording anything. */
   const unlock = useCallback(async (code: string) => {
     if (!user) return null;
     const ach = all.find(a => a.code === code);
     if (!ach || unlockedIds.has(ach.id)) return null;
-    const { error } = await supabase.from("user_achievements").insert({ user_id: user.id, achievement_id: ach.id });
-    if (error) return null;
+    const { data, error } = await supabase.functions.invoke("game-progress", {
+      body: { action: "unlock_achievement", code },
+    });
+    if (error || !data?.unlocked) return null;
     setUnlockedIds(prev => new Set(prev).add(ach.id));
     return ach;
   }, [user, all, unlockedIds]);

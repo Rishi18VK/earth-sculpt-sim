@@ -42,10 +42,24 @@ export interface AchievementRow {
   unlocked: boolean;
 }
 
+interface LeaderboardRow {
+  user_id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  distance_explored: number | null;
+  collectibles_found: number | null;
+  terrains_generated: number | null;
+  xp: number | null;
+  level: number | null;
+}
+
 export async function fetchLeaderboard(limit = 20): Promise<LeaderboardEntry[]> {
-  const { data, error } = await supabase.rpc("get_leaderboard", { _limit: limit });
+  const { data: res, error } = await supabase.functions.invoke("app-data", {
+    body: { action: "leaderboard", limit },
+  });
   if (error) throw error;
-  return (data ?? []).map((r) => ({
+  const data = (res?.data ?? []) as LeaderboardRow[];
+  return data.map((r) => ({
     userId: r.user_id,
     name: r.display_name ?? "Explorer",
     avatarUrl: r.avatar_url,
