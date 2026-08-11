@@ -18,19 +18,17 @@ export function useDailyReward() {
 
   useEffect(() => { check(); }, [check]);
 
+  /** Eligibility, the server date and the XP grant are all enforced server-side. */
   const claim = useCallback(async (): Promise<number | null> => {
     if (!user || !available || claiming) return null;
     setClaiming(true);
-    const today = new Date().toISOString().slice(0, 10);
-    const { error } = await supabase.from("daily_rewards_log").insert({ user_id: user.id, day: today, reward_type: "xp", amount: REWARD_XP });
+    const { data, error } = await supabase.functions.invoke("game-progress", {
+      body: { action: "claim_daily_reward" },
+    });
     setClaiming(false);
-    if (error) return null;
-    // add xp
-    const { data: prog } = await supabase.from("user_progress").select("xp").eq("user_id", user.id).maybeSingle();
-    const newXp = (prog?.xp ?? 0) + REWARD_XP;
-    await supabase.from("user_progress").upsert({ user_id: user.id, xp: newXp }, { onConflict: "user_id" });
+    if (error) { setAvailable(false); return null; }
     setAvailable(false);
-    return REWARD_XP;
+    return data?.awarded ?? REWARD_XP;
   }, [user, available, claiming]);
 
   return { available, claim, claiming, rewardXp: REWARD_XP };
