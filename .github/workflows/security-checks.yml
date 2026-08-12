@@ -13,6 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -20,10 +24,16 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Verify npm lockfile matches package.json
+        # npm audit reads package-lock.json, so it must describe the same tree
+        # bun installs. `npm ci --dry-run` fails if the two are out of sync.
+        run: npm ci --dry-run --ignore-scripts
+
       - name: Run security regression checks
         run: bun run security:check
 
+      - name: Build
+        run: bun run build
+
       - name: npm audit (high & critical)
-        run: |
-          bun pm ls > /dev/null 2>&1 || true
-          npx --yes better-npm-audit audit --level high || exit 1
+        run: npm audit --audit-level=high
