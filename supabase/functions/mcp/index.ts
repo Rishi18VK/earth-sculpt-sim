@@ -6,7 +6,7 @@
 import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.22.2";
 
 // src/lib/mcp/tools/get-profile.ts
-import { createClient } from "npm:@supabase/supabase-js@^2.98.0";
+import { createClient } from "npm:@supabase/supabase-js@^2.112.3";
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.22.2";
 function supabaseForUser(ctx) {
   return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
@@ -34,7 +34,7 @@ var get_profile_default = defineTool({
 });
 
 // src/lib/mcp/tools/get-stats.ts
-import { createClient as createClient2 } from "npm:@supabase/supabase-js@^2.98.0";
+import { createClient as createClient2 } from "npm:@supabase/supabase-js@^2.112.3";
 import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.22.2";
 function supabaseForUser2(ctx) {
   return createClient2(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
@@ -62,7 +62,7 @@ var get_stats_default = defineTool2({
 });
 
 // src/lib/mcp/tools/list-donations.ts
-import { createClient as createClient3 } from "npm:@supabase/supabase-js@^2.98.0";
+import { createClient as createClient3 } from "npm:@supabase/supabase-js@^2.112.3";
 import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.22.2";
 import { z } from "npm:zod@^4.4.3";
 function supabaseForUser3(ctx) {
