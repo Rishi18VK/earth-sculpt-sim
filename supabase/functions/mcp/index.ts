@@ -3,11 +3,11 @@
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
 // src/lib/mcp/index.ts
-import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.26.2";
 
 // src/lib/mcp/tools/get-profile.ts
 import { createClient } from "npm:@supabase/supabase-js@^2.112.3";
-import { defineTool } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { defineTool } from "npm:@lovable.dev/mcp-js@0.26.2";
 function supabaseForUser(ctx) {
   return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
@@ -35,7 +35,7 @@ var get_profile_default = defineTool({
 
 // src/lib/mcp/tools/get-stats.ts
 import { createClient as createClient2 } from "npm:@supabase/supabase-js@^2.112.3";
-import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.26.2";
 function supabaseForUser2(ctx) {
   return createClient2(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
@@ -63,7 +63,7 @@ var get_stats_default = defineTool2({
 
 // src/lib/mcp/tools/list-donations.ts
 import { createClient as createClient3 } from "npm:@supabase/supabase-js@^2.112.3";
-import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.26.2";
 import { z } from "npm:zod@^4.4.3";
 function supabaseForUser3(ctx) {
   return createClient3(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
@@ -107,5 +107,5 @@ var mcp_default = defineMcp({
 });
 
 // lovable-mcp-supabase-entry.ts
-import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.22.2/stacks/supabase";
+import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.26.2/stacks/supabase";
 Deno.serve(createSupabaseHandler(mcp_default, { functionName: "mcp" }));
