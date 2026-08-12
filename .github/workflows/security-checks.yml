@@ -37,3 +37,33 @@ jobs:
 
       - name: npm audit (high & critical)
         run: npm audit --audit-level=high
+
+  sbom:
+    name: Generate SBOM (CycloneDX)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate CycloneDX SBOM (JSON)
+        run: npx --yes @cyclonedx/cyclonedx-npm@^4 --package-lock-only --output-format JSON --output-file sbom.cdx.json
+
+      - name: Generate CycloneDX SBOM (XML)
+        run: npx --yes @cyclonedx/cyclonedx-npm@^4 --package-lock-only --output-format XML --output-file sbom.cdx.xml
+
+      - name: Show SBOM summary
+        run: |
+          node -e "const b=require('./sbom.cdx.json');console.log('spec',b.specVersion,'components',b.components.length)"
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.sha }}
+          path: |
+            sbom.cdx.json
+            sbom.cdx.xml
+          if-no-files-found: error
+          retention-days: 90
