@@ -52,11 +52,20 @@ Deno.serve(async (req) => {
     return json({ error: "Could not update password" }, 500);
   }
 
-  await admin.from("security_events").insert({
-    kind: "auth",
+  const at = new Date().toISOString();
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("cf-connecting-ip") ??
+    null;
+
+  const { error: logErr } = await admin.from("security_events").insert({
+    kind: "admin_action",
     actor: userData.user.email ?? callerId,
-    detail: "Super admin password set from stored credential",
+    detail: `Super admin password set/changed for ${userData.user.email ?? callerId} at ${at}`,
+    ip,
   });
+  if (logErr) console.error("audit log insert failed", logErr.message);
+
 
   return json({ ok: true });
 });

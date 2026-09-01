@@ -62,15 +62,19 @@ export default function EventLog({
 
       <DataTable head={["Event", "Actor", "Detail", "IP", "When"]}>
         <StateRow loading={loading} error={error} empty={!events.length} cols={5} />
-        {events.map((e) => (
-          <tr key={e.id} className="hover:bg-foreground/5 transition-colors">
-            <td className="px-4 py-3"><Pill tone={meta[e.kind].tone}>{meta[e.kind].label}</Pill></td>
-            <td className="px-4 py-3 font-medium">{e.actor}</td>
-            <td className="px-4 py-3 text-muted-foreground">{e.detail}</td>
-            <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{e.ip ?? "—"}</td>
-            <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{fmtDateTime(e.at)}</td>
-          </tr>
-        ))}
+        {events.map((e) => {
+          const m = meta[e.kind] ?? meta.admin_action;
+          return (
+            <tr key={e.id} className="hover:bg-foreground/5 transition-colors">
+              <td className="px-4 py-3"><Pill tone={m.tone}>{m.label}</Pill></td>
+              <td className="px-4 py-3 font-medium">{e.actor}</td>
+              <td className="px-4 py-3 text-muted-foreground">{e.detail}</td>
+              <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{e.ip ?? "—"}</td>
+              <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{fmtDateTime(e.at)}</td>
+            </tr>
+          );
+        })}
+
       </DataTable>
     </AdminSection>
   );
