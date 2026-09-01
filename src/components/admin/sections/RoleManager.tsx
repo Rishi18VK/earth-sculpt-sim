@@ -25,6 +25,24 @@ export default function RoleManager() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<AppRole>("moderator");
   const [busy, setBusy] = useState(false);
+  const [pwBusy, setPwBusy] = useState(false);
+
+  const applyStoredPassword = async () => {
+    setPwBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-set-password", { body: {} });
+      if (error) {
+        const message = (data as { error?: string } | null)?.error ?? error.message;
+        throw new Error(typeof message === "string" ? message : "Request failed");
+      }
+      toast.success("Super admin password updated. Use it on your next sign-in.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not set password");
+    } finally {
+      setPwBusy(false);
+    }
+  };
+
 
   const call = useCallback(async (body: Record<string, unknown>) => {
     const { data, error } = await supabase.functions.invoke("admin-roles", { body });
