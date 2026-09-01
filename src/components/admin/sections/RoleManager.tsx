@@ -128,6 +128,24 @@ export default function RoleManager() {
         </Button>
       </div>
 
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-6 rounded-xl border border-border/40 bg-foreground/5 p-3">
+        <p className="text-xs text-muted-foreground flex-1">
+          Apply the stored super admin password to your own account. The value is kept in secure
+          backend storage and never shown here.
+        </p>
+        <Button
+          variant="outline"
+          onClick={applyStoredPassword}
+          disabled={pwBusy}
+          className="rounded-xl gap-2 shrink-0"
+        >
+          {pwBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+          Set super admin password
+        </Button>
+      </div>
+
+
+
       {loading ? (
         <div className="py-8 flex justify-center">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
