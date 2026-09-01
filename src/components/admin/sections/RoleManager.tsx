@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { ShieldCheck, Trash2, Loader2, UserPlus } from "lucide-react";
+import { ShieldCheck, Trash2, Loader2, UserPlus, KeyRound } from "lucide-react";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
