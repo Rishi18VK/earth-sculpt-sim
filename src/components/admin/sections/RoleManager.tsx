@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { ShieldCheck, Trash2, Loader2, UserPlus } from "lucide-react";
+import { ShieldCheck, Trash2, Loader2, UserPlus, KeyRound } from "lucide-react";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +25,24 @@ export default function RoleManager() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<AppRole>("moderator");
   const [busy, setBusy] = useState(false);
+  const [pwBusy, setPwBusy] = useState(false);
+
+  const applyStoredPassword = async () => {
+    setPwBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-set-password", { body: {} });
+      if (error) {
+        const message = (data as { error?: string } | null)?.error ?? error.message;
+        throw new Error(typeof message === "string" ? message : "Request failed");
+      }
+      toast.success("Super admin password updated. Use it on your next sign-in.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not set password");
+    } finally {
+      setPwBusy(false);
+    }
+  };
+
 
   const call = useCallback(async (body: Record<string, unknown>) => {
     const { data, error } = await supabase.functions.invoke("admin-roles", { body });
@@ -108,6 +127,24 @@ export default function RoleManager() {
           Grant
         </Button>
       </div>
+
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-6 rounded-xl border border-border/40 bg-foreground/5 p-3">
+        <p className="text-xs text-muted-foreground flex-1">
+          Apply the stored super admin password to your own account. The value is kept in secure
+          backend storage and never shown here.
+        </p>
+        <Button
+          variant="outline"
+          onClick={applyStoredPassword}
+          disabled={pwBusy}
+          className="rounded-xl gap-2 shrink-0"
+        >
+          {pwBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+          Set super admin password
+        </Button>
+      </div>
+
+
 
       {loading ? (
         <div className="py-8 flex justify-center">
