@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminSection, DataTable, Pill, fmtDateTime } from "../AdminUI";
+import PasswordChangeCard from "./PasswordChangeCard";
 
 type AppRole = "super_admin" | "admin" | "moderator" | "user";
 type RoleRow = { id: string; user_id: string; role: AppRole; created_at: string; email: string };
@@ -126,6 +127,10 @@ export default function RoleManager() {
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
           Grant
         </Button>
+      </div>
+
+      <div className="mb-6">
+        <PasswordChangeCard />
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-6 rounded-xl border border-border/40 bg-foreground/5 p-3">
