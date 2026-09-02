@@ -355,6 +355,45 @@ export type Database = {
         }
         Relationships: []
       }
+      model_customizations: {
+        Row: {
+          configuration: Json
+          created_at: string
+          id: string
+          is_shared: boolean
+          location_id: string
+          model_id: string
+          name: string
+          share_token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          configuration?: Json
+          created_at?: string
+          id?: string
+          is_shared?: boolean
+          location_id: string
+          model_id?: string
+          name?: string
+          share_token?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          configuration?: Json
+          created_at?: string
+          id?: string
+          is_shared?: boolean
+          location_id?: string
+          model_id?: string
+          name?: string
+          share_token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mods: {
         Row: {
           author: string
