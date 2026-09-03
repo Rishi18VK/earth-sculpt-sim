@@ -1,0 +1,1 @@
+ALTER TABLE public.model_customizations ADD CONSTRAINT model_customizations_user_location_key UNIQUE (user_id, location_id);
