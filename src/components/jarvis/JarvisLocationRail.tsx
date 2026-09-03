@@ -1,0 +1,9 @@
+import { MapPin, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import type { DiscoverLocation } from "@/lib/discover-locations";
+
+interface Props { locations: DiscoverLocation[]; selectedId: string; query: string; onQuery: (value: string) => void; onSelect: (id: string) => void; }
+export default function JarvisLocationRail({ locations, selectedId, query, onQuery, onSelect }: Props) {
+  return <aside className="flex min-h-0 flex-col border-b border-border/40 bg-card/20 lg:border-b-0 lg:border-r"><div className="border-b border-border/40 p-4"><p className="text-eyebrow text-primary">Location index</p><h2 className="mt-1 text-lg font-bold">Choose a reconstruction</h2><div className="relative mt-4"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={query} onChange={(e) => onQuery(e.target.value)} placeholder="Search places" className="h-10 pl-9" /></div></div><div className="scrollbar-hide flex gap-2 overflow-x-auto p-3 lg:block lg:space-y-1 lg:overflow-y-auto">{locations.map((loc) => <button key={loc.id} type="button" onClick={() => onSelect(loc.id)} className={cn("flex min-w-44 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-left transition-colors lg:w-full", selectedId === loc.id ? "border-primary/40 bg-primary/10" : "hover:bg-background/40")}><span className="text-xl">{loc.emoji}</span><span className="min-w-0"><span className="block truncate text-xs font-semibold">{loc.name}</span><span className="mt-0.5 flex items-center gap-1 truncate text-[10px] text-muted-foreground"><MapPin className="h-3 w-3 shrink-0" />{loc.region}</span></span></button>)}{locations.length === 0 && <p className="p-3 text-xs text-muted-foreground">No locations match.</p>}</div></aside>;
+}
