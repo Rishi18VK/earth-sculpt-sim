@@ -58,6 +58,12 @@ export function cloneConfig(c: ModelConfiguration): ModelConfiguration {
   return JSON.parse(JSON.stringify(c));
 }
 
+/** Serialize a configuration into a database-safe JSON value. */
+export function configToJson(c: ModelConfiguration): Json {
+  return JSON.parse(JSON.stringify(c)) as Json;
+}
+
+
 /** Merge a persisted (possibly partial / legacy) payload onto the defaults. */
 export function normalizeConfig(raw: unknown): ModelConfiguration {
   const base = cloneConfig(DEFAULT_CONFIG);
