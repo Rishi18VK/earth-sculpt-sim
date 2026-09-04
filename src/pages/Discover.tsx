@@ -69,11 +69,14 @@ export default function Discover() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
         {results.map((l, i) => (
-          <motion.button
+          <motion.div
             key={l.id}
+            role="button"
+            tabIndex={0}
             onClick={() => open(l.id, l.name)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(l.id, l.name); } }}
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i * 0.03, 0.3) }}
-            className="glass-card rounded-2xl p-4 text-left relative overflow-hidden hover:scale-[1.02] transition-transform"
+            className="glass-card rounded-2xl p-4 text-left relative overflow-hidden hover:scale-[1.02] transition-transform cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <div className={cn("absolute -top-10 -right-10 w-32 h-32 rounded-full blur-2xl bg-gradient-to-br", l.gradient)} />
             <div className="relative">
@@ -90,9 +93,17 @@ export default function Discover() {
                 <MapPin className="h-3 w-3" />{l.region}
               </p>
               <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{l.description}</p>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); haptics.tap(); nav(`/jarvis?location=${l.id}`); }}
+                className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-primary transition-colors hover:bg-primary/20"
+              >
+                <Boxes className="h-3 w-3" />Inspect in JARVIS
+              </button>
             </div>
-          </motion.button>
+          </motion.div>
         ))}
+
         {results.length === 0 && (
           <div className="col-span-full text-center py-12 text-sm text-muted-foreground">
             No locations match your search.
