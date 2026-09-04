@@ -1,3 +1,5 @@
+import type { Json } from "@/integrations/supabase/types";
+
 export type QualityPreset = "auto" | "low" | "medium" | "high";
 export type EnvPreset = "void" | "orbit" | "dusk" | "grid" | "aurora";
 
