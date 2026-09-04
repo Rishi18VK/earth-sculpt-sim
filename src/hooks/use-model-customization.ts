@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   DEFAULT_CONFIG,
   cloneConfig,
+  configToJson,
   normalizeConfig,
   type ModelConfiguration,
 } from "@/lib/jarvis/config";
