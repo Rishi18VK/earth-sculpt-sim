@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   DEFAULT_CONFIG,
   cloneConfig,
+  configToJson,
   normalizeConfig,
   type ModelConfiguration,
 } from "@/lib/jarvis/config";
@@ -123,7 +124,7 @@ export function useModelCustomization(locationId: string, modelId: string | null
           location_id: locationId,
           model_id: modelId ?? `${locationId}-model`,
           name: locationId,
-          configuration: config as unknown as Record<string, unknown>,
+          configuration: configToJson(config),
         },
         { onConflict: "user_id,location_id" },
       );
