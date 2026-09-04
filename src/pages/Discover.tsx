@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, MapPin } from "lucide-react";
+import { Search, MapPin, Boxes } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { DISCOVER_LOCATIONS, CATEGORY_LABELS, type DiscoverCategory } from "@/lib/discover-locations";
 import { cn } from "@/lib/utils";
