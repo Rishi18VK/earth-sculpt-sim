@@ -44,6 +44,45 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_audit_logs: {
+        Row: {
+          action: string
+          actor_label: string
+          actor_user_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          source: string
+          status: string
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          actor_label?: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          source?: string
+          status?: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          actor_label?: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          source?: string
+          status?: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           audience: string
@@ -262,6 +301,42 @@ export type Database = {
           id?: string
           reward_type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      discord_admin_links: {
+        Row: {
+          active: boolean
+          created_at: string
+          discord_user_id: string
+          discord_username: string | null
+          id: string
+          last_used_at: string | null
+          note: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          discord_user_id: string
+          discord_username?: string | null
+          id?: string
+          last_used_at?: string | null
+          note?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          discord_user_id?: string
+          discord_username?: string | null
+          id?: string
+          last_used_at?: string | null
+          note?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
