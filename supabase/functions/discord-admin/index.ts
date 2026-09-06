@@ -78,6 +78,22 @@ Deno.serve(async (req) => {
   const GUILD_ID = Deno.env.get("DISCORD_GUILD_ID") ?? "";
   const ADMIN_ROLE_ID = Deno.env.get("DISCORD_ADMIN_ROLE_ID") ?? "";
 
+  const isSnowflake = (v: string) => /^\d{17,20}$/.test(v);
+  const isHex64 = (v: string) => /^[0-9a-fA-F]{64}$/.test(v);
+  const isBotToken = (v: string) => /^[\w-]{20,}\.[\w-]{5,}\.[\w-]{20,}$/.test(v);
+
+  /** Field-level validation of the five Discord settings. */
+  const validation = [
+    { key: "applicationId", label: "Application ID", value: APP_ID, ok: isSnowflake(APP_ID), hint: "17–20 digit Discord snowflake" },
+    { key: "publicKey", label: "Public key", value: PUBLIC_KEY, ok: isHex64(PUBLIC_KEY), hint: "64 hexadecimal characters" },
+    { key: "botToken", label: "Bot token", value: BOT_TOKEN, ok: isBotToken(BOT_TOKEN), hint: "three dot-separated segments" },
+    { key: "guildId", label: "Server (guild) ID", value: GUILD_ID, ok: isSnowflake(GUILD_ID), hint: "17–20 digit Discord snowflake" },
+    { key: "adminRoleId", label: "Admin role ID", value: ADMIN_ROLE_ID, ok: isSnowflake(ADMIN_ROLE_ID), hint: "17–20 digit Discord snowflake" },
+  ];
+  const problems = validation
+    .filter((f) => !f.ok)
+    .map((f) => (f.value ? `${f.label} is malformed (expected ${f.hint}).` : `${f.label} is not set.`));
+
   try {
     if (parsed.data.action === "status") {
       const configured = {
@@ -87,6 +103,8 @@ Deno.serve(async (req) => {
         guildId: !!GUILD_ID,
         adminRoleId: !!ADMIN_ROLE_ID,
       };
+      const valid = Object.fromEntries(validation.map((f) => [f.key, f.ok])) as Record<string, boolean>;
+
 
       let bot: { username: string } | null = null;
       let guild: { name: string; memberCount: number | null } | null = null;
