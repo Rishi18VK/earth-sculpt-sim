@@ -70,11 +70,11 @@ export default function DiscordSection() {
           {status.error && <p className="text-sm text-destructive">{status.error}</p>}
           {s && (
             <>
-              <ConfigRow label="Application ID" ok={s.configured.applicationId} />
-              <ConfigRow label="Public key" ok={s.configured.publicKey} />
-              <ConfigRow label="Bot token" ok={s.configured.botToken} />
-              <ConfigRow label="Server (guild) ID" ok={s.configured.guildId} />
-              <ConfigRow label="Admin role ID" ok={s.configured.adminRoleId} />
+              <ConfigRow label="Application ID" ok={s.configured.applicationId} valid={s.valid?.applicationId} />
+              <ConfigRow label="Public key" ok={s.configured.publicKey} valid={s.valid?.publicKey} />
+              <ConfigRow label="Bot token" ok={s.configured.botToken} valid={s.valid?.botToken} />
+              <ConfigRow label="Server (guild) ID" ok={s.configured.guildId} valid={s.valid?.guildId} />
+              <ConfigRow label="Admin role ID" ok={s.configured.adminRoleId} valid={s.valid?.adminRoleId} />
               <div className="mt-4 space-y-2">
                 <p className="text-xs text-muted-foreground">Interactions endpoint URL</p>
                 <div className="flex gap-2">
@@ -91,13 +91,30 @@ export default function DiscordSection() {
                   </Button>
                 </div>
               </div>
+
+              {!!s.problems?.length && (
+                <ul className="mt-4 space-y-1.5 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-xs text-amber-200">
+                  {s.problems.map((p) => (
+                    <li key={p} className="flex gap-2">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" /> {p}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
               <Button
                 className="rounded-xl mt-4 w-full"
-                disabled={busy}
+                disabled={busy || !s.canRegister}
                 onClick={() => run(registerDiscordCommands, "Slash commands registered")}
               >
                 Register slash commands
               </Button>
+              {!s.canRegister && (
+                <p className="mt-2 text-xs text-muted-foreground text-center">
+                  Save all five settings correctly to enable registration.
+                </p>
+              )}
+
             </>
           )}
         </Panel>
