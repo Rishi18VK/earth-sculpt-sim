@@ -101,6 +101,9 @@ export interface DiscordStatus {
     guildId: boolean;
     adminRoleId: boolean;
   };
+  valid: Record<string, boolean>;
+  problems: string[];
+  canRegister: boolean;
   bot: { username: string } | null;
   guild: { name: string; memberCount: number | null } | null;
   botError: string | null;
@@ -119,8 +122,10 @@ export async function registerDiscordCommands() {
     body: { action: "register_commands" },
   });
   if (error) throw new Error("Command registration failed. Check the Discord configuration.");
+  if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
   return data as { ok: boolean; scope: string };
 }
+
 
 export async function listDiscordLinks(): Promise<DiscordLink[]> {
   const { data, error } = await supabase
