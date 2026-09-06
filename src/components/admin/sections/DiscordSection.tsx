@@ -14,18 +14,22 @@ import {
   registerDiscordCommands,
 } from "@/lib/admin/discord-data";
 
-function ConfigRow({ label, ok }: { label: string; ok: boolean }) {
+function ConfigRow({ label, ok, valid }: { label: string; ok: boolean; valid?: boolean }) {
+  const state = !ok ? "missing" : valid === false ? "invalid" : "ok";
   return (
     <div className="flex items-center justify-between py-1.5 text-sm">
       <span className="text-muted-foreground">{label}</span>
-      {ok ? (
-        <span className="inline-flex items-center gap-1.5 text-emerald-400"><CheckCircle2 className="h-4 w-4" /> Set</span>
+      {state === "ok" ? (
+        <span className="inline-flex items-center gap-1.5 text-emerald-400"><CheckCircle2 className="h-4 w-4" /> Valid</span>
+      ) : state === "invalid" ? (
+        <span className="inline-flex items-center gap-1.5 text-amber-400"><AlertTriangle className="h-4 w-4" /> Invalid format</span>
       ) : (
         <span className="inline-flex items-center gap-1.5 text-destructive"><XCircle className="h-4 w-4" /> Missing</span>
       )}
     </div>
   );
 }
+
 
 export default function DiscordSection() {
   const status = useAsyncData(getDiscordStatus);
