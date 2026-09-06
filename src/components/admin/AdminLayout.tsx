@@ -43,6 +43,8 @@ const NAV = [
   { key: "content", label: "Content", icon: FileText, Component: ContentSection },
   { key: "media", label: "Media Library", icon: Images, Component: MediaSection },
   { key: "logs", label: "Activity Logs", icon: ScrollText, Component: ActivityLogsSection },
+  { key: "audit", label: "Audit Log", icon: ScrollText, Component: AuditLogSection },
+  { key: "discord", label: "Discord", icon: MessageSquare, Component: DiscordSection },
   { key: "security", label: "Security", icon: Shield, Component: SecuritySection },
   { key: "bugs", label: "Bug Reports", icon: Bug, Component: BugReportsSection },
   { key: "feedback", label: "Feedback", icon: MessageSquare, Component: FeedbackSection },
