@@ -128,6 +128,17 @@ Deno.serve(async (req) => {
           if (gRes.ok) {
             const g = await gRes.json();
             guild = { name: g.name, memberCount: g.approximate_member_count ?? null };
+            if (ADMIN_ROLE_ID) {
+              const rRes = await fetch(`https://discord.com/api/v10/guilds/${GUILD_ID}/roles`, {
+                headers: { Authorization: `Bot ${BOT_TOKEN}` },
+              });
+              if (rRes.ok) {
+                const roles = (await rRes.json()) as { id: string }[];
+                if (!roles.some((r) => r.id === ADMIN_ROLE_ID)) {
+                  problems.push("Admin role ID does not exist in the configured server.");
+                }
+              }
+            }
           } else {
             botError = "Bot is not a member of the configured server";
           }
@@ -144,11 +155,22 @@ Deno.serve(async (req) => {
 
       const interactionsUrl = `${SUPABASE_URL}/functions/v1/discord-interactions`;
 
-      return json({ configured, bot, guild, botError, lastActivity: lastActivity ?? null, interactionsUrl });
+      return json({
+        configured,
+        valid,
+        problems: botError ? [...problems, botError] : problems,
+        canRegister: problems.length === 0 && !botError,
+        bot,
+        guild,
+        botError,
+        lastActivity: lastActivity ?? null,
+        interactionsUrl,
+      });
     }
 
-    // register_commands
-    if (!APP_ID || !BOT_TOKEN) return json({ error: "Discord application id and bot token must be configured first" }, 400);
+    // register_commands — refuse unless every setting is present and well-formed
+    if (problems.length) return json({ error: problems.join(" ") }, 400);
+
     const url = GUILD_ID
       ? `https://discord.com/api/v10/applications/${APP_ID}/guilds/${GUILD_ID}/commands`
       : `https://discord.com/api/v10/applications/${APP_ID}/commands`;
