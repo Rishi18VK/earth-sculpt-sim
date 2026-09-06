@@ -21,6 +21,8 @@ import FeedbackSection from "./sections/FeedbackSection";
 import BugReportsSection from "./sections/BugReportsSection";
 import SecuritySection from "./sections/SecuritySection";
 import ActivityLogsSection from "./sections/ActivityLogsSection";
+import AuditLogSection from "./sections/AuditLogSection";
+import DiscordSection from "./sections/DiscordSection";
 import NotificationsSection from "./sections/NotificationsSection";
 import MediaSection from "./sections/MediaSection";
 import SystemHealthSection from "./sections/SystemHealthSection";
