@@ -144,6 +144,25 @@ export default function DiscordSection() {
             <p className="text-sm text-muted-foreground">{status.loading ? "Loading…" : "Unavailable."}</p>
           )}
         </Panel>
+
+        <Panel>
+          <h2 className="font-display font-bold mb-2">Channel alerts</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Admin actions, security changes, donations and feedback are posted to your Discord channel.
+          </p>
+          <Button
+            className="rounded-xl gap-2 w-full"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              const ok = await notifyDiscord({ kind: "test", title: "Test alert from Terra Explorer", description: "Your Discord channel is connected." });
+              setBusy(false);
+              toast({ title: ok ? "Test alert sent to Discord" : "Could not reach Discord", variant: ok ? "default" : "destructive" });
+            }}
+          >
+            <Send className="h-4 w-4" /> Send test alert
+          </Button>
+        </Panel>
       </div>
 
       <Panel>
