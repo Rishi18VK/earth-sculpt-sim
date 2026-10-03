@@ -18,6 +18,8 @@ import TerrainSection from "./sections/TerrainSection";
 import LandmarkSection from "./sections/LandmarkSection";
 import ContentSection from "./sections/ContentSection";
 import FeedbackSection from "./sections/FeedbackSection";
+import AITriageSection from "./sections/AITriageSection";
+import { Sparkles } from "lucide-react";
 import BugReportsSection from "./sections/BugReportsSection";
 import SecuritySection from "./sections/SecuritySection";
 import ActivityLogsSection from "./sections/ActivityLogsSection";
@@ -48,6 +50,7 @@ const NAV = [
   { key: "security", label: "Security", icon: Shield, Component: SecuritySection },
   { key: "bugs", label: "Bug Reports", icon: Bug, Component: BugReportsSection },
   { key: "feedback", label: "Feedback", icon: MessageSquare, Component: FeedbackSection },
+  { key: "triage", label: "AI Triage", icon: Sparkles, Component: AITriageSection },
   { key: "notifications", label: "Notifications", icon: Bell, Component: NotificationsSection },
   { key: "health", label: "System Health", icon: Activity, Component: SystemHealthSection },
   { key: "settings", label: "Settings", icon: Settings, Component: SettingsSection },
