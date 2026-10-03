@@ -76,8 +76,30 @@ export async function recordAdminAction(
       metadata: (opts.metadata ?? {}) as never,
       status: opts.status ?? "success",
     });
+    const fields: Record<string, string> = { Actor: auth.user?.email ?? "admin", Status: opts.status ?? "success" };
+    if (opts.targetType) fields.Target = `${opts.targetType}${opts.targetId ? `: ${opts.targetId}` : ""}`;
+    void notifyDiscord({
+      kind: /password|role|security/i.test(action) ? "security" : "admin",
+      title: action.replace(/_/g, " "),
+      fields,
+    });
   } catch {
     /* audit failures must never block an admin action */
+  }
+}
+
+/** Best-effort Discord channel alert. Never throws. */
+export async function notifyDiscord(payload: {
+  kind: "test" | "admin" | "security" | "donation" | "feedback";
+  title: string;
+  description?: string;
+  fields?: Record<string, string>;
+}): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.functions.invoke("discord-notify", { body: payload });
+    return !error && !!(data as { ok?: boolean })?.ok;
+  } catch {
+    return false;
   }
 }
 
