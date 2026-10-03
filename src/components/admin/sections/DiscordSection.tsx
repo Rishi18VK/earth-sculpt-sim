@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RefreshCw, Plus, Trash2, Power, CheckCircle2, XCircle, Copy } from "lucide-react";
+import { RefreshCw, Plus, Trash2, Power, CheckCircle2, XCircle, Copy, AlertTriangle, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AdminSection, DataTable, Panel, Pill, StateRow, fmtDateTime } from "../AdminUI";
@@ -12,6 +12,7 @@ import {
   setDiscordLinkActive,
   removeDiscordLink,
   registerDiscordCommands,
+  notifyDiscord,
 } from "@/lib/admin/discord-data";
 
 function ConfigRow({ label, ok, valid }: { label: string; ok: boolean; valid?: boolean }) {
