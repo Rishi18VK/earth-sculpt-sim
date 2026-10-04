@@ -42,7 +42,16 @@ Deno.serve(async (req) => {
     if (!isAdmin) return json({ error: "Forbidden" }, 403);
   }
 
-  const res = await fetch(WEBHOOK, {
+  const svc = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const started = Date.now();
+  const log = (status: string, http_status: number | null, error: string | null) =>
+    svc.from("discord_deliveries").insert({
+      kind: b.kind, title: b.title.slice(0, 200), status, http_status,
+      error: error?.slice(0, 1000) ?? null, duration_ms: Date.now() - started, triggered_by: u.user!.id,
+    }).then(() => {}, () => {});
+
+  let res: Response;
+  try { res = await fetch(WEBHOOK, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -56,11 +65,16 @@ Deno.serve(async (req) => {
         timestamp: new Date().toISOString(),
       }],
     }),
-  });
+  }); } catch (e) {
+    await log("failed", null, `Network error: ${(e as Error).message}`);
+    return json({ error: "Discord unreachable" }, 502);
+  }
   if (!res.ok) {
     const t = await res.text();
+    await log("failed", res.status, t || res.statusText);
     console.error("Discord webhook failed", res.status, t);
     return json({ error: "Discord webhook failed", status: res.status, details: t }, 502);
   }
+  await log("delivered", res.status, null);
   return json({ ok: true });
 });

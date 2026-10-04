@@ -340,6 +340,42 @@ export type Database = {
         }
         Relationships: []
       }
+      discord_deliveries: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          error: string | null
+          http_status: number | null
+          id: string
+          kind: string
+          status: string
+          title: string
+          triggered_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          error?: string | null
+          http_status?: number | null
+          id?: string
+          kind: string
+          status: string
+          title: string
+          triggered_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          error?: string | null
+          http_status?: number | null
+          id?: string
+          kind?: string
+          status?: string
+          title?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       donations: {
         Row: {
           amount: number
@@ -369,31 +405,49 @@ export type Database = {
       }
       feedback: {
         Row: {
+          ai_actions: Json | null
+          ai_category: string | null
+          ai_priority: string | null
+          ai_rationale: string | null
+          ai_summary: string | null
           created_at: string
           detail: string
           id: string
           status: string
           title: string
+          triaged_at: string | null
           type: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          ai_actions?: Json | null
+          ai_category?: string | null
+          ai_priority?: string | null
+          ai_rationale?: string | null
+          ai_summary?: string | null
           created_at?: string
           detail?: string
           id?: string
           status?: string
           title: string
+          triaged_at?: string | null
           type?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          ai_actions?: Json | null
+          ai_category?: string | null
+          ai_priority?: string | null
+          ai_rationale?: string | null
+          ai_summary?: string | null
           created_at?: string
           detail?: string
           id?: string
           status?: string
           title?: string
+          triaged_at?: string | null
           type?: string
           updated_at?: string
           user_id?: string
