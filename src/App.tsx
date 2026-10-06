@@ -22,13 +22,14 @@ import Admin from "./pages/Admin";
 import Jarvis from "./pages/Jarvis";
 import AppShell from "@/components/shell/AppShell";
 import LoadingScreen from "@/components/shell/LoadingScreen";
+import Report from "./pages/Report";
 
 const queryClient = new QueryClient();
 
 function Shell() {
   const location = useLocation();
   // Full-immersive routes bypass the shell chrome entirely
-  const immersive = ["/explore", "/jarvis", "/auth", "/admin", "/.lovable/oauth/consent"].some(p =>
+  const immersive = ["/explore", "/jarvis", "/auth", "/admin", "/report", "/.lovable/oauth/consent"].some(p =>
     location.pathname === p || location.pathname.startsWith(p + "/")
   );
   const content = (
@@ -44,6 +45,7 @@ function Shell() {
       <Route path="/support" element={<Support />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/auth" element={<Auth />} />
+      <Route path="/report" element={<Report />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/jarvis" element={<Jarvis />} />
       <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
