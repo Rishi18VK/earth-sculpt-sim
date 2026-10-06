@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Compass, Map, Sparkles, Package, User } from "lucide-react";
+import { Compass, Map, Sparkles, Package, User, Bug } from "lucide-react";
 import { motion } from "framer-motion";
 import { useHaptics } from "@/hooks/use-haptics";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ const ITEMS = [
   { to: "/map", label: "Map", icon: Map },
   { to: "/discover", label: "Discover", icon: Sparkles },
   { to: "/mods", label: "Mods", icon: Package },
+  { to: "/report", label: "Report", icon: Bug },
   { to: "/profile", label: "Profile", icon: User },
 ];
 

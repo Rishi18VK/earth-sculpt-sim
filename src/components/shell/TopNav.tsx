@@ -10,6 +10,7 @@ const LINKS = [
   { to: "/discover", label: "Landmarks" },
   { to: "/mods", label: "Mods" },
   { to: "/community", label: "Community" },
+  { to: "/report", label: "Report" },
   { to: "/support", label: "Pricing" },
   { to: "/support", label: "Support" },
 ];

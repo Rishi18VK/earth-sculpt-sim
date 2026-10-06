@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import {
   LayoutDashboard, Users, BarChart3, IndianRupee, Package, FileText,
   MessageSquare, Shield, Bell, Settings, Code2, Menu, X, ArrowLeft, Globe2,
-  Gamepad2, Mountain, MapPin, Heart, ScrollText, Bug, Images, Activity,
+  Gamepad2, Mountain, MapPin, Heart, ScrollText, Bug, Images, Activity, Send,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import DashboardSection from "./sections/DashboardSection";
@@ -30,6 +30,8 @@ import MediaSection from "./sections/MediaSection";
 import SystemHealthSection from "./sections/SystemHealthSection";
 import SettingsSection from "./sections/SettingsSection";
 import DeveloperSection from "./sections/DeveloperSection";
+import DiscordDeliveriesSection from "./sections/DiscordDeliveriesSection";
+import TriagedSubmissions from "./sections/TriagedSubmissions";
 import { APP_VERSION } from "@/lib/admin/admin-data";
 
 const NAV = [
@@ -51,6 +53,8 @@ const NAV = [
   { key: "bugs", label: "Bug Reports", icon: Bug, Component: BugReportsSection },
   { key: "feedback", label: "Feedback", icon: MessageSquare, Component: FeedbackSection },
   { key: "triage", label: "AI Triage", icon: Sparkles, Component: AITriageSection },
+  { key: "submissions", label: "User Submissions", icon: MessageSquare, Component: TriagedSubmissions },
+  { key: "deliveries", label: "Webhook Deliveries", icon: Send, Component: DiscordDeliveriesSection },
   { key: "notifications", label: "Notifications", icon: Bell, Component: NotificationsSection },
   { key: "health", label: "System Health", icon: Activity, Component: SystemHealthSection },
   { key: "settings", label: "Settings", icon: Settings, Component: SettingsSection },

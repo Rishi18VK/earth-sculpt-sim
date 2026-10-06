@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles } from "lucide-react";
+import TriagedSubmissions from "./TriagedSubmissions";
 
 type Result = { summary: string; category: string; priority: string; rationale: string; suggested_actions: string[] };
 
@@ -71,6 +72,7 @@ export default function AITriageSection() {
           )}
         </div>
       )}
+      <TriagedSubmissions />
     </div>
   );
 }
