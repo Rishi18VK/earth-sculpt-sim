@@ -1,4 +1,7 @@
 import { BiomeId, BiomeConfig, BIOMES } from "./biomes";
+import { DISCOVER_LOCATIONS, type DiscoverCategory } from "./discover-locations";
+
+export type LocationDetailCategory = Exclude<DiscoverCategory, "trending">;
 
 export interface RealEarthLocation {
   name: string;
@@ -15,9 +18,10 @@ export interface RealEarthLocation {
   fogColor: string;
   description: string;
   tags: string[];
+  detailCategory?: LocationDetailCategory;
 }
 
-export const REAL_EARTH_LOCATIONS: Record<string, RealEarthLocation> = {
+const BASE_REAL_EARTH_LOCATIONS: Record<string, RealEarthLocation> = {
   himalayas: {
     name: "Himalayas",
     region: "Nepal / India",
@@ -186,6 +190,61 @@ export const REAL_EARTH_LOCATIONS: Record<string, RealEarthLocation> = {
     description: "Africa's tallest peak rising from savanna to snow-capped summit",
     tags: ["kilimanjaro", "mountain", "africa", "tanzania", "snow", "savanna"],
   },
+};
+
+const DISCOVER_BIOMES: Record<LocationDetailCategory, BiomeId> = {
+  landmark: "earth",
+  waterfall: "tropical",
+  mountain: "arctic",
+  park: "earth",
+  monument: "desert",
+};
+
+const DISCOVER_ALIASES: Record<string, string> = {
+  everest: "himalayas",
+  "grand-canyon": "grandcanyon",
+};
+
+function createDiscoverLocation(id: string): RealEarthLocation | undefined {
+  const discover = DISCOVER_LOCATIONS.find((location) => location.id === id);
+  if (!discover) return undefined;
+
+  const detailCategory = discover.category === "trending" ? "landmark" : discover.category;
+  const alias = DISCOVER_ALIASES[id];
+  const existing = BASE_REAL_EARTH_LOCATIONS[id] ?? (alias ? BASE_REAL_EARTH_LOCATIONS[alias] : undefined);
+  const biomeBase = id === "dudhsagar"
+    ? "dudhsagar"
+    : existing?.biomeBase ?? DISCOVER_BIOMES[detailCategory];
+  const biome = BIOMES[biomeBase];
+
+  return {
+    name: discover.name,
+    region: discover.region,
+    lat: discover.lat,
+    lng: discover.lng,
+    biomeBase,
+    noiseScale: existing?.noiseScale ?? biome.noiseScale,
+    noiseAmplitude: existing?.noiseAmplitude ?? biome.noiseAmplitude,
+    noiseOffset: existing?.noiseOffset ?? biome.noiseOffset,
+    waterLevel: existing?.waterLevel ?? biome.waterLevel,
+    fogColor: existing?.fogColor ?? biome.fogColor,
+    description: discover.description,
+    tags: [discover.category, discover.name.toLowerCase(), discover.region.toLowerCase()],
+    detailCategory,
+  };
+}
+
+const DISCOVER_LOCATION_PROFILES = Object.fromEntries(
+  DISCOVER_LOCATIONS.flatMap((location) => {
+    const profile = createDiscoverLocation(location.id);
+    return profile ? [[location.id, profile]] : [];
+  }),
+);
+
+/** Includes legacy Real Earth presets plus a terrain profile for every Discover card. */
+export const REAL_EARTH_LOCATIONS: Record<string, RealEarthLocation> = {
+  ...BASE_REAL_EARTH_LOCATIONS,
+  ...DISCOVER_LOCATION_PROFILES,
 };
 
 /** Search locations by name or tags */
