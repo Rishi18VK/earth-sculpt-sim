@@ -1,3 +1,4 @@
 - [x] Wire the report page into routing and desktop/mobile navigation.
 - [x] Add user submission review and Discord delivery history to admin navigation and AI triage.
 - [ ] Verify the report flow and admin views; identify any access or backend blocker.
+- [ ] Resolve every Discover location into Explore and add deterministic, quality-scaled procedural 3D environmental details.

@@ -1,0 +1,2 @@
+## Architecture
+- Keep real-world location resolution in `src/lib/real-earth-locations.ts` and render location-specific environmental dressing through a reusable React Three Fiber scene component; this preserves existing Explore URLs and the dedicated Dudhsagar scene while avoiding duplicated terrain logic.
