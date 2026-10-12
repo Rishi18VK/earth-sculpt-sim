@@ -15,9 +15,8 @@ import ExplorerActions from "@/components/terrain/ExplorerActions";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { BIOMES, BiomeId } from "@/lib/biomes";
 import { useMods } from "@/hooks/use-mods";
-import { RealEarthLocation, locationToBiome, REAL_EARTH_LOCATIONS } from "@/lib/real-earth-locations";
-import { getDiscoverLocationProfile } from "@/lib/real-earth-locations";
-import { useSearchParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { RealEarthLocation, locationToBiome, REAL_EARTH_LOCATIONS, getDiscoverLocationProfile } from "@/lib/real-earth-locations";
 
 interface TerrainInfo {
   type: string;
@@ -48,7 +47,7 @@ const Index = () => {
   const [realEarthMode, setRealEarthMode] = useState(false);
   const [realEarthLocation, setRealEarthLocation] = useState<RealEarthLocation | null>(null);
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
 
   const biome = realEarthMode && realEarthLocation
     ? locationToBiome(realEarthLocation)
@@ -114,10 +113,11 @@ const Index = () => {
   };
   // Hydrate state from share URL (?biome=, ?seed=, ?night=, ?loc=)
   useEffect(() => {
-    const b = searchParams.get("biome");
-    const s = searchParams.get("seed");
-    const n = searchParams.get("night");
-    const loc = searchParams.get("loc");
+    const params = new URLSearchParams(location.search);
+    const b = params.get("biome");
+    const s = params.get("seed");
+    const n = params.get("night");
+    const loc = params.get("loc");
     if (b && b in BIOMES) setCurrentBiome(b as BiomeId);
     if (s && !isNaN(Number(s))) setSeed(Number(s));
     if (n === "1" || n === "true") setIsNight(true);
@@ -127,7 +127,7 @@ const Index = () => {
       setRealEarthLocation(location);
       setRealEarthMode(true);
     }
-  }, [searchParams]);
+  }, [location.search]);
 
   // Keyboard shortcut: F for fullscreen
   useEffect(() => {
