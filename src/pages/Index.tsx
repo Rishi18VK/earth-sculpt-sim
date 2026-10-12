@@ -121,10 +121,10 @@ const Index = () => {
     if (b && b in BIOMES) setCurrentBiome(b as BiomeId);
     if (s && !isNaN(Number(s))) setSeed(Number(s));
     if (n === "1" || n === "true") setIsNight(true);
-    const location = loc ? getDiscoverLocationProfile(loc) ?? REAL_EARTH_LOCATIONS[loc] : undefined;
-    if (loc && location) {
+    const selectedProfile = loc ? getDiscoverLocationProfile(loc) ?? REAL_EARTH_LOCATIONS[loc] : undefined;
+    if (loc && selectedProfile) {
       setSelectedLocationId(loc);
-      setRealEarthLocation(location);
+      setRealEarthLocation(selectedProfile);
       setRealEarthMode(true);
     }
   }, [location.search]);
