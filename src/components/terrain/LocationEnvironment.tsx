@@ -236,14 +236,16 @@ function LandmarkDetail({ locationId }: { locationId: string }) {
   );
 }
 
-function MonumentDetail({ locationId }: { locationId: string }) {
+function MonumentDetail({ locationId, detailTier }: { locationId: string; detailTier: number }) {
   if (locationId === "great-wall") {
-    const walls: Placement[] = Array.from({ length: 15 }, (_, index) => {
-      const x = -15 + index * 2.15;
+    const segmentCount = [8, 12, 16][detailTier];
+    const walls: Placement[] = Array.from({ length: segmentCount }, (_, index) => {
+      const x = -segmentCount * 1.08 + index * 2.15;
       const z = -7 + Math.sin(index * 0.38) * 2.2;
       return { position: [x, 1.1 + Math.sin(index * 0.4) * 0.5, z], scale: [2.3, 0.8, 1.1], rotationY: Math.cos(index * 0.38) * 0.2 };
     });
-    const towers: Placement[] = [2, 7, 12].map((index) => {
+    const towerIndices = [Math.floor(segmentCount * 0.2), Math.floor(segmentCount * 0.5), Math.floor(segmentCount * 0.8)];
+    const towers: Placement[] = towerIndices.map((index) => {
       const wall = walls[index];
       return { position: [wall.position[0], wall.position[1] + 0.9, wall.position[2]], scale: [1.7, 2, 1.7] };
     });
@@ -282,8 +284,9 @@ function MonumentDetail({ locationId }: { locationId: string }) {
   }
 
   if (locationId === "colosseum") {
-    const columns: Placement[] = Array.from({ length: 16 }, (_, index) => {
-      const angle = (index / 16) * Math.PI * 2;
+    const columnCount = [10, 14, 20][detailTier];
+    const columns: Placement[] = Array.from({ length: columnCount }, (_, index) => {
+      const angle = (index / columnCount) * Math.PI * 2;
       return { position: [Math.cos(angle) * 5.3, 1.2, Math.sin(angle) * 4.1], scale: [1, 2.4, 1], rotationY: -angle };
     });
     return (
@@ -301,9 +304,11 @@ function MonumentDetail({ locationId }: { locationId: string }) {
 
 function WaterfallSheet({ x, width, height, bottom, tint }: { x: number; width: number; height: number; bottom: number; tint: string }) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const elapsed = useRef(0);
   useFrame((_, rawDelta) => {
     const delta = Math.min(rawDelta, 0.05);
-    if (meshRef.current) meshRef.current.rotation.z = Math.sin(performance.now() * 0.0015) * 0.012 * (delta > 0 ? 1 : 0);
+    elapsed.current += delta;
+    if (meshRef.current) meshRef.current.rotation.z = Math.sin(elapsed.current * 1.5) * 0.012;
   });
   return (
     <mesh ref={meshRef} position={[x, bottom + height / 2, 0.35]}>
@@ -313,11 +318,11 @@ function WaterfallSheet({ x, width, height, bottom, tint }: { x: number; width: 
   );
 }
 
-function WaterfallDetail({ locationId }: { locationId: string }) {
+function WaterfallDetail({ locationId, detailTier }: { locationId: string; detailTier: number }) {
   const falls = locationId === "angel"
     ? [{ x: 0, width: 2.4, height: 8.5, bottom: 0.2 }]
     : locationId === "niagara"
-      ? [-2.25, 0, 2.25].map((x) => ({ x, width: 2.8, height: 5.3, bottom: 0.3 }))
+      ? (detailTier === 0 ? [0] : detailTier === 1 ? [-1.3, 1.3] : [-2.25, 0, 2.25]).map((x) => ({ x, width: 2.8, height: 5.3, bottom: 0.3 }))
       : [{ x: -2.2, width: 2.8, height: 4.8, bottom: 0.3 }, { x: 1.2, width: 3.7, height: 5.8, bottom: 0.65 }, { x: 3.6, width: 2.4, height: 3.7, bottom: 0.1 }];
   return (
     <group>
@@ -361,9 +366,11 @@ function AcaciaTree({ position }: { position: [number, number, number] }) {
 
 function Geyser() {
   const plumeRef = useRef<THREE.Group>(null);
+  const elapsed = useRef(0);
   useFrame((_, rawDelta) => {
     const delta = Math.min(rawDelta, 0.05);
-    if (plumeRef.current) plumeRef.current.position.y = 2.7 + Math.sin(performance.now() * 0.0012) * 0.24 * (delta > 0 ? 1 : 0);
+    elapsed.current += delta;
+    if (plumeRef.current) plumeRef.current.position.y = 2.7 + Math.sin(elapsed.current * 1.2) * 0.24;
   });
   return (
     <group>
@@ -377,7 +384,7 @@ function Geyser() {
   );
 }
 
-function ParkDetail({ locationId, biome, seed, baseHeight }: { locationId: string; biome: BiomeConfig; seed: number; baseHeight: number }) {
+function ParkDetail({ locationId, biome, seed, baseHeight, detailTier }: { locationId: string; biome: BiomeConfig; seed: number; baseHeight: number; detailTier: number }) {
   if (locationId === "yellowstone") return <Geyser />;
   if (locationId === "banff") {
     return <group><mesh position={[0, 0.2, 2]} rotation-x={-Math.PI / 2} scale={[1.3, 0.72, 1]}><circleGeometry args={[4.2, 32]} /><meshStandardMaterial color="#4eaeb2" roughness={0.2} metalness={0.14} /></mesh><Peak x={-5} z={-5} height={8} radius={4} snow={2.5} color="#7a817d" /><Peak x={4} z={-7} height={10} radius={4.8} snow={3.1} color="#69767a" /></group>;
@@ -389,7 +396,7 @@ function ParkDetail({ locationId, biome, seed, baseHeight }: { locationId: strin
     <group>
       {[-1, 1].map((side) => (
         <group key={side} position={[side * 4.1, 0, -5]}>
-          {[0, 1, 2, 3].map((layer) => (
+          {Array.from({ length: 2 + detailTier }, (_, layer) => (
             <mesh key={layer} position={[0, 1.3 + layer * 1.45, 0]}>
               <boxGeometry args={[4.6 - layer * 0.25, 1.55, 9 - layer * 0.8]} />
               <meshStandardMaterial color={["#a65336", "#c06b42", "#d18b58", "#b96d45"][layer]} roughness={0.97} flatShading />
@@ -403,16 +410,18 @@ function ParkDetail({ locationId, biome, seed, baseHeight }: { locationId: strin
 }
 
 export default function LocationEnvironment({ locationId, category, biome, seed }: LocationEnvironmentProps) {
+  const quality = useMemo(() => getQualitySettings(), []);
+  const detailTier = quality.vegetationCount < 40 ? 0 : quality.vegetationCount < 70 ? 1 : 2;
   const baseHeight = biomeNoise(0, 0, biome, seed);
   const context = { locationId, category, biome, seed, baseHeight };
 
   return (
     <group position={[0, baseHeight, 0]}>
-      {category === "waterfall" && <WaterfallDetail locationId={locationId} />}
+      {category === "waterfall" && <WaterfallDetail locationId={locationId} detailTier={detailTier} />}
       {category === "mountain" && <MountainDetail locationId={locationId} />}
       {category === "landmark" && <LandmarkDetail locationId={locationId} />}
-      {category === "monument" && <MonumentDetail locationId={locationId} />}
-      {category === "park" && <ParkDetail locationId={locationId} biome={biome} seed={seed} baseHeight={baseHeight} />}
+      {category === "monument" && <MonumentDetail locationId={locationId} detailTier={detailTier} />}
+      {category === "park" && <ParkDetail locationId={locationId} biome={biome} seed={seed} baseHeight={baseHeight} detailTier={detailTier} />}
       <ScenicScatter {...context} baseHeight={baseHeight} />
     </group>
   );

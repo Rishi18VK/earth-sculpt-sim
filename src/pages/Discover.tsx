@@ -30,7 +30,7 @@ export default function Discover() {
   const open = (id: string, name: string) => {
     haptics.tap();
     toast.success(`Opening ${name} in Explore…`);
-    nav("/explore");
+    nav(`/explore?loc=${encodeURIComponent(id)}`);
   };
 
   return (
