@@ -16,6 +16,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { BIOMES, BiomeId } from "@/lib/biomes";
 import { useMods } from "@/hooks/use-mods";
 import { RealEarthLocation, locationToBiome, REAL_EARTH_LOCATIONS } from "@/lib/real-earth-locations";
+import { getDiscoverLocationProfile } from "@/lib/real-earth-locations";
+import { useSearchParams } from "react-router-dom";
 
 interface TerrainInfo {
   type: string;
@@ -45,6 +47,8 @@ const Index = () => {
   // Real Earth Mode
   const [realEarthMode, setRealEarthMode] = useState(false);
   const [realEarthLocation, setRealEarthLocation] = useState<RealEarthLocation | null>(null);
+  const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
 
   const biome = realEarthMode && realEarthLocation
     ? locationToBiome(realEarthLocation)
@@ -110,19 +114,20 @@ const Index = () => {
   };
   // Hydrate state from share URL (?biome=, ?seed=, ?night=, ?loc=)
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const b = params.get("biome");
-    const s = params.get("seed");
-    const n = params.get("night");
-    const loc = params.get("loc");
+    const b = searchParams.get("biome");
+    const s = searchParams.get("seed");
+    const n = searchParams.get("night");
+    const loc = searchParams.get("loc");
     if (b && b in BIOMES) setCurrentBiome(b as BiomeId);
     if (s && !isNaN(Number(s))) setSeed(Number(s));
     if (n === "1" || n === "true") setIsNight(true);
-    if (loc && REAL_EARTH_LOCATIONS[loc]) {
-      setRealEarthLocation(REAL_EARTH_LOCATIONS[loc]);
+    const location = loc ? getDiscoverLocationProfile(loc) ?? REAL_EARTH_LOCATIONS[loc] : undefined;
+    if (loc && location) {
+      setSelectedLocationId(loc);
+      setRealEarthLocation(location);
       setRealEarthMode(true);
     }
-  }, []);
+  }, [searchParams]);
 
   // Keyboard shortcut: F for fullscreen
   useEffect(() => {
@@ -138,9 +143,7 @@ const Index = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const realEarthLocationKey = realEarthMode && realEarthLocation
-    ? Object.keys(REAL_EARTH_LOCATIONS).find((k) => REAL_EARTH_LOCATIONS[k].name === realEarthLocation.name)
-    : undefined;
+  const realEarthLocationKey = realEarthMode ? selectedLocationId ?? undefined : undefined;
 
   const shareState = {
     biome: realEarthMode ? undefined : currentBiome,
@@ -169,6 +172,8 @@ const Index = () => {
           terrainColorOverrides={terrainColorOverrides}
           biomeEffectOverrides={biomeEffectOverrides}
           cameraOverrides={cameraOverrides}
+          locationId={realEarthMode ? selectedLocationId : null}
+          locationDetailCategory={realEarthMode && selectedLocationId ? getDiscoverLocationProfile(selectedLocationId)?.detailCategory : null}
         />
       </div>
 
@@ -210,6 +215,7 @@ const Index = () => {
               if (realEarthMode) {
                 setRealEarthMode(false);
                 setRealEarthLocation(null);
+                setSelectedLocationId(null);
               } else {
                 setShowRealEarth(true);
               }
@@ -318,6 +324,8 @@ const Index = () => {
               activeLocation={realEarthLocation}
               onSelectLocation={(loc) => {
                 setRealEarthLocation(loc);
+                const entry = Object.entries(REAL_EARTH_LOCATIONS).find(([, candidate]) => candidate === loc);
+                setSelectedLocationId(entry?.[0] ?? null);
                 setRealEarthMode(true);
                 setSelectedInfo(null);
                 setPointA(null);

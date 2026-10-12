@@ -234,7 +234,7 @@ function createDiscoverLocation(id: string): RealEarthLocation | undefined {
   };
 }
 
-const DISCOVER_LOCATION_PROFILES = Object.fromEntries(
+export const DISCOVER_LOCATION_PROFILES: Record<string, RealEarthLocation> = Object.fromEntries(
   DISCOVER_LOCATIONS.flatMap((location) => {
     const profile = createDiscoverLocation(location.id);
     return profile ? [[location.id, profile]] : [];
@@ -246,6 +246,11 @@ export const REAL_EARTH_LOCATIONS: Record<string, RealEarthLocation> = {
   ...BASE_REAL_EARTH_LOCATIONS,
   ...DISCOVER_LOCATION_PROFILES,
 };
+
+/** Resolve a Discover card ID to its dedicated real-world terrain profile. */
+export function getDiscoverLocationProfile(id: string): RealEarthLocation | undefined {
+  return DISCOVER_LOCATION_PROFILES[id];
+}
 
 /** Search locations by name or tags */
 export function searchLocations(query: string): RealEarthLocation[] {

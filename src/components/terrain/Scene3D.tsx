@@ -10,6 +10,7 @@ import WeatherEffects from "./WeatherEffects";
 import PlayerCharacter from "./PlayerCharacter";
 import Collectibles from "./Collectibles";
 import DudhsagarEnvironment from "./DudhsagarEnvironment";
+import LocationEnvironment from "./LocationEnvironment";
 import { CloudLayer, VolumetricFog, AmbientParticles, GodRays, WaterMist, CanopyRays } from "./AtmosphereEffects";
 import { AnimatedLights, AnimatedFog, AnimatedBackground, AnimatedSky, AnimatedStars } from "./SceneLighting";
 import { Suspense } from "react";
@@ -17,6 +18,7 @@ import * as THREE from "three";
 import { BiomeConfig } from "@/lib/biomes";
 import { getQualitySettings } from "@/lib/terrain-quality";
 import type { ModPlayerOverrides, ModWeatherOverrides, ModTerrainColorOverrides, ModBiomeEffectOverrides, ModCameraOverrides } from "@/lib/mod-types";
+import type { LocationDetailCategory } from "@/lib/real-earth-locations";
 
 interface MeasurementPoint {
   position: [number, number, number];
@@ -40,12 +42,15 @@ interface Scene3DProps {
   terrainColorOverrides?: ModTerrainColorOverrides | null;
   biomeEffectOverrides?: ModBiomeEffectOverrides | null;
   cameraOverrides?: ModCameraOverrides | null;
+  locationId?: string | null;
+  locationDetailCategory?: LocationDetailCategory | null;
 }
 
 export default function Scene3D({
   onPointClick, pointA, pointB, biome, seed = 0, isNight = false, playMode = false,
   onPlayerPositionUpdate, onCollect, mobileInput, modOverrides,
   weatherOverrides, terrainColorOverrides, biomeEffectOverrides, cameraOverrides,
+  locationId, locationDetailCategory,
 }: Scene3DProps) {
   const [playerPos, setPlayerPos] = useState<[number, number, number] | null>(null);
   const quality = useMemo(() => getQualitySettings(), []);
@@ -100,6 +105,10 @@ export default function Scene3D({
 
         {biome.id === "dudhsagar" && (
           <DudhsagarEnvironment biome={biome} seed={seed} playerPosition={playerPos} />
+        )}
+
+        {locationId && locationDetailCategory && locationId !== "dudhsagar" && (
+          <LocationEnvironment locationId={locationId} category={locationDetailCategory} biome={biome} seed={seed} />
         )}
 
         <PlayerCharacter biome={biome} seed={seed} playMode={playMode} onPositionUpdate={handlePlayerPosition} mobileInput={mobileInput} modOverrides={modOverrides} cameraOverrides={cameraOverrides} />
