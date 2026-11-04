@@ -252,6 +252,17 @@ export function getDiscoverLocationProfile(id: string): RealEarthLocation | unde
   return DISCOVER_LOCATION_PROFILES[id];
 }
 
+/** Deterministic per-location seed derived from the location name and coordinates. */
+export function getLocationSeed(loc: RealEarthLocation): number {
+  const key = `${loc.name}|${loc.lat.toFixed(3)},${loc.lng.toFixed(3)}`;
+  let h = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) % 100000;
+}
+
 /** Search locations by name or tags */
 export function searchLocations(query: string): RealEarthLocation[] {
   const q = query.toLowerCase().trim();

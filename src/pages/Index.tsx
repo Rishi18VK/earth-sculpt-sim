@@ -16,7 +16,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { BIOMES, BiomeId } from "@/lib/biomes";
 import { useMods } from "@/hooks/use-mods";
 import { useLocation } from "react-router-dom";
-import { RealEarthLocation, locationToBiome, REAL_EARTH_LOCATIONS, getDiscoverLocationProfile } from "@/lib/real-earth-locations";
+import { RealEarthLocation, locationToBiome, REAL_EARTH_LOCATIONS, getDiscoverLocationProfile, getLocationSeed } from "@/lib/real-earth-locations";
 
 interface TerrainInfo {
   type: string;
@@ -52,6 +52,9 @@ const Index = () => {
   const biome = realEarthMode && realEarthLocation
     ? locationToBiome(realEarthLocation)
     : BIOMES[currentBiome];
+  // Real Earth locations get a deterministic seed from their coordinates so every
+  // location renders its own distinct terrain while remaining reproducible.
+  const effectiveSeed = realEarthMode && realEarthLocation ? getLocationSeed(realEarthLocation) : seed;
   const { mods, error: modError, warnings: modWarnings, installFromZip, installFromFiles, installPreset, toggleMod, removeMod, playerOverrides, weatherOverrides, terrainColorOverrides, biomeEffectOverrides, cameraOverrides, clearError, clearWarnings } = useMods();
 
   const activeMod = mods.find((m) => m.enabled && m.config.type === "player");
@@ -161,7 +164,7 @@ const Index = () => {
           pointA={pointA}
           pointB={pointB}
           biome={biome}
-          seed={seed}
+          seed={effectiveSeed}
           isNight={isNight}
           playMode={playMode}
           onPlayerPositionUpdate={setPlayerPosition}
@@ -308,7 +311,7 @@ const Index = () => {
             <SheetTitle className="text-sm">STL Export</SheetTitle>
           </SheetHeader>
           <div className="mt-4">
-            <ExportPanel biome={biome} seed={seed} />
+            <ExportPanel biome={biome} seed={effectiveSeed} />
           </div>
         </SheetContent>
       </Sheet>
