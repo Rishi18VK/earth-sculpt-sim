@@ -19,16 +19,23 @@ export interface QualitySettings {
   maxDrawDistance: number;
 }
 
+// Cache the detected tier for the whole page session. detectQuality() creates a
+// throwaway WebGL context to probe for WebGL2, and dozens of scene components
+// (trees, particles, water) call this per mount — uncached, each call leaked a
+// WebGL context and pushed the browser over its active-context limit.
+let cachedTier: "low" | "medium" | "high" | null = null;
+
 export function detectQuality(): "low" | "medium" | "high" {
+  if (cachedTier) return cachedTier;
   if (typeof window === "undefined") return "medium";
 
   const isMobile = window.innerWidth < 768;
   const pixelRatio = window.devicePixelRatio || 1;
   const hasWebGL2 = !!document.createElement("canvas").getContext("webgl2");
 
-  if (isMobile || !hasWebGL2) return "low";
-  if (pixelRatio > 1.5 && window.innerWidth > 1200) return "high";
-  return "medium";
+  const tier = isMobile || !hasWebGL2 ? "low" : pixelRatio > 1.5 && window.innerWidth > 1200 ? "high" : "medium";
+  cachedTier = tier;
+  return tier;
 }
 
 export const QUALITY_PRESETS: Record<"low" | "medium" | "high", QualitySettings> = {
