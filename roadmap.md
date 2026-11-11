@@ -2,3 +2,6 @@
 - [x] Add user submission review and Discord delivery history to admin navigation and AI triage.
 - [ ] Verify the report flow and admin views; identify any access or backend blocker.
 - [x] Resolve every Discover location into Explore and add deterministic, quality-scaled procedural 3D environmental details.
+- [ ] Repair and locally verify GitHub security workflow and CycloneDX generation; remote run status needs GitHub access.
+- [ ] Add optional Tabletop Mode controls, grid/snap behavior, terrain plateaus, modular print options, scale presets, and export validation.
+- [ ] Verify Tabletop Mode and Freeform regressions across desktop and mobile; physical print validation remains external.
